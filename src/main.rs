@@ -4,8 +4,6 @@ use poise::serenity_prelude::{self as serenity};
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
 
-const GUILD_ID: serenity::GuildId = serenity::GuildId(865673694184996885);
-
 async fn on_ready(
   ctx: &serenity::Context,
   ready: &serenity::Ready,
@@ -14,12 +12,19 @@ async fn on_ready(
   println!("Connected to API as {}", ready.user.name);
 
   let builder = poise::builtins::create_application_commands(&framework.options().commands);
-  let commands = serenity::GuildId::set_application_commands(&GUILD_ID, &ctx.http, |commands| {
-      *commands = builder.clone();
-      commands
-    }).await;
-  
-  println!("Registered the following commands: \n{:#?}", commands);
+  let commands = serenity::Command::set_global_application_commands(&ctx.http, |commands| {
+    *commands = builder.clone();
+    commands
+  }).await;
+
+  match commands {
+    Ok(cmdmap) => {
+      for command in cmdmap.iter() {
+        println!("Registered command globally: {}", command.name);
+      }
+    },
+    Err(why) => println!("Error registering commands: {:?}", why)
+  }
 
   Ok(())
 }
