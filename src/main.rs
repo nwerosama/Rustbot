@@ -11,19 +11,23 @@ async fn on_ready(
 ) -> Result<(), Error> {
   println!("Connected to API as {}", ready.user.name);
 
-  let builder = poise::builtins::create_application_commands(&framework.options().commands);
-  let commands = serenity::Command::set_global_application_commands(&ctx.http, |commands| {
-    *commands = builder.clone();
-    commands
-  }).await;
+  let register_commands = std::env::var("REGISTER_CMDS").unwrap_or_else(|_| String::from("true")).parse::<bool>().unwrap_or(true);
 
-  match commands {
-    Ok(cmdmap) => {
-      for command in cmdmap.iter() {
-        println!("Registered command globally: {}", command.name);
-      }
-    },
-    Err(why) => println!("Error registering commands: {:?}", why)
+  if register_commands {
+    let builder = poise::builtins::create_application_commands(&framework.options().commands);
+    let commands = serenity::Command::set_global_application_commands(&ctx.http, |commands| {
+      *commands = builder.clone();
+      commands
+    }).await;
+
+    match commands {
+      Ok(cmdmap) => {
+        for command in cmdmap.iter() {
+          println!("Registered command globally: {}", command.name);
+        }
+      },
+      Err(why) => println!("Error registering commands: {:?}", why)
+    }
   }
 
   Ok(())
