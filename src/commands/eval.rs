@@ -6,7 +6,7 @@ use std::process::Command;
 use std::io::Write;
 
 const WHITELISTED_USERS: &[UserId] = &[
-  poise::serenity_prelude::UserId(190407856527376384)
+  UserId(190407856527376384)
 ];
 
 /// Evaluate a piece of code
