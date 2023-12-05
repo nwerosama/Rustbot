@@ -37,7 +37,8 @@ async fn main() {
     .intents(serenity::GatewayIntents::MESSAGE_CONTENT | serenity::GatewayIntents::GUILDS)
     .options(poise::FrameworkOptions {
       commands: vec![
-        commands::ping::ping()
+        commands::ping::ping(),
+        commands::eval::eval()
       ],
       pre_command: |ctx| {
         Box::pin(async move {
