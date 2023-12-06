@@ -52,7 +52,8 @@ async fn main() {
     .options(poise::FrameworkOptions {
       commands: vec![
         commands::ping::ping(),
-        commands::eval::eval()
+        commands::eval::eval(),
+        commands::data::data()
       ],
       pre_command: |ctx| {
         Box::pin(async move {
