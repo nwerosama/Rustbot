@@ -26,7 +26,7 @@ pub async fn eval(
 
   {
     let mut file = std::fs::File::create(&file_path)?;
-    writeln!(file, "{}", code)?;
+    writeln!(file, "fn main() {{ {} }}", code)?;
   }
 
   // Compile
