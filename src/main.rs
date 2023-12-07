@@ -4,6 +4,8 @@ use poise::serenity_prelude::{self as serenity};
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
 
+pub static COLOR: i32 = 0xf1d63c;
+
 async fn on_ready(
   ctx: &serenity::Context,
   ready: &serenity::Ready,
@@ -13,7 +15,7 @@ async fn on_ready(
 
   serenity::ChannelId(865673694184996888).send_message(&ctx.http, |m| {
     m.embed(|e| {
-      e.color(0xf1d63c)
+      e.color(COLOR)
         .thumbnail(ready.user.avatar_url().unwrap_or_default())
         .author(|a| {
           a.name(format!("{} is ready!", ready.user.name))

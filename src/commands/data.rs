@@ -30,7 +30,7 @@ pub async fn data(
 
   ctx.send(|m| {
     m.embed(|e| {
-      e.color(0xf1d63c)
+      e.color(crate::COLOR)
         .author(|a| {
           a.name(format!("{}/{}", slot_cur, slot_cap))
         })
