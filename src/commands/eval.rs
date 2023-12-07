@@ -1,9 +1,11 @@
 use crate::Error;
 
 use poise::serenity_prelude::UserId;
-use std::os::unix::fs::PermissionsExt;
-use std::process::Command;
-use std::io::Write;
+use std::{
+  io::Write,
+  process::Command,
+  os::unix::fs::PermissionsExt
+};
 
 const WHITELISTED_USERS: &[UserId] = &[
   UserId(190407856527376384)
@@ -51,6 +53,6 @@ pub async fn eval(
     return Ok(());
   }
 
-  ctx.reply(format!("Code output:\n```rs\n{}```", String::from_utf8_lossy(&output.stdout))).await?;
+  ctx.reply(format!("Output:\n```{}```", String::from_utf8_lossy(&output.stdout))).await?;
   Ok(())
 }

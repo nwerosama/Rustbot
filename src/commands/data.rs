@@ -31,9 +31,9 @@ pub async fn data(
   ctx.send(|m| {
     m.embed(|e| {
       e.color(crate::COLOR)
-        .author(|a| {
+        .author(|a|
           a.name(format!("{}/{}", slot_cur, slot_cap))
-        })
+        )
         .title(name)
         .description("*Nobody is playing*")
         .fields(vec![
@@ -44,9 +44,9 @@ pub async fn data(
           ("Autosave", "xx", true),
           ("Timescale", "0x", true)
         ])
-        .footer(|f| {
+        .footer(|f|
           f.text("Last updated")
-        })
+        )
         .timestamp(poise::serenity_prelude::Timestamp::now())
     })
   }).await?;

@@ -57,11 +57,10 @@ async fn main() {
         commands::eval::eval(),
         commands::data::data()
       ],
-      pre_command: |ctx| {
+      pre_command: |ctx|
         Box::pin(async move {
           println!("{} ran /{}", ctx.author().name, ctx.command().name)
-        })
-      },
+        }),
       ..Default::default()
     }).setup(|ctx, ready, framework| Box::pin(on_ready(ctx, ready, framework)))
     .build().await.expect("Error while building the client");
