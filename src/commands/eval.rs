@@ -33,6 +33,7 @@ pub async fn eval(
 
   // Compile
   let compiled_path = dir.path().join("temp");
+  println!("Compiling {} -> {}", file_path.display(), compiled_path.display());
   let output = Command::new("rustc").arg(&file_path).arg("-o").arg(&compiled_path).output()?;
 
   if !output.status.success() {

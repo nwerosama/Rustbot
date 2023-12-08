@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  bot:
+    container_name: Rustbot
+    image: 'git.toast-server.net/toast/rustbot:main'
+    build: .
+    env_file:
+      - .env
+    restart: unless-stopped
