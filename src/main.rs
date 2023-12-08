@@ -14,13 +14,13 @@ async fn on_ready(
   println!("Connected to API as {}", ready.user.name);
 
   serenity::ChannelId(865673694184996888).send_message(&ctx.http, |m| {
-    m.embed(|e| {
+    m.embed(|e|
       e.color(COLOR)
         .thumbnail(ready.user.avatar_url().unwrap_or_default())
-        .author(|a| {
+        .author(|a|
           a.name(format!("{} is ready!", ready.user.name))
-        })
-    })
+        )
+    )
   }).await?;
 
   let register_commands = std::env::var("REGISTER_CMDS").unwrap_or_else(|_| String::from("true")).parse::<bool>().unwrap_or(true);
@@ -57,8 +57,7 @@ async fn main() {
         commands::eval::eval(),
         commands::data::data()
       ],
-      pre_command: |ctx|
-        Box::pin(async move {
+      pre_command: |ctx| Box::pin(async move {
           println!("{} ran /{}", ctx.author().name, ctx.command().name)
         }),
       ..Default::default()
