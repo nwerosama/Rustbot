@@ -15,7 +15,6 @@ pub async fn data(
 
   // Send a GET request to the provided URL
   let response = get(&url).await?.json::<HashMap<String, Value>>().await?;
-  // println!("{:?}", response);
 
   // Extract the required values from the parsed JSON
   let server = &response["server"];
@@ -28,28 +27,25 @@ pub async fn data(
   let slot_cap = slots["capacity"].as_i64().unwrap();
   let slot_cur = slots["used"].as_i64().unwrap();
 
-  ctx.send(|m| {
-    m.embed(|e| {
-      e.color(crate::COLOR)
-        .author(|a|
-          a.name(format!("{}/{}", slot_cur, slot_cap))
-        )
-        .title(name)
-        .description("*Nobody is playing*")
-        .fields(vec![
-          ("Map", map, true),
-          ("Version", ver, true),
-          ("Time", "xx:xx", true),
-          ("Slot usage", "xx/xx", true),
-          ("Autosave", "xx", true),
-          ("Timescale", "0x", true)
-        ])
-        .footer(|f|
-          f.text("Last updated")
-        )
-        .timestamp(poise::serenity_prelude::Timestamp::now())
-    })
-  }).await?;
+  ctx.send(|m| m.embed(|e| e.color(crate::COLOR)
+    .author(|a|
+      a.name(format!("{}/{}", slot_cur, slot_cap))
+    )
+    .title(name)
+    .description("*Nobody is playing*")
+    .fields(vec![
+      ("Map", map, true),
+      ("Version", ver, true),
+      ("Time", "xx:xx", true),
+      ("Slot usage", "xx/xx", true),
+      ("Autosave", "xx", true),
+      ("Timescale", "0x", true)
+    ])
+    .footer(|f|
+      f.text("Last updated")
+    )
+    .timestamp(poise::serenity_prelude::Timestamp::now())
+  )).await?;
 
   Ok(())
 }

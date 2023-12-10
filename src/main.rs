@@ -13,15 +13,13 @@ async fn on_ready(
 ) -> Result<(), Error> {
   println!("Connected to API as {}", ready.user.name);
 
-  serenity::ChannelId(865673694184996888).send_message(&ctx.http, |m| {
-    m.embed(|e|
-      e.color(COLOR)
-        .thumbnail(ready.user.avatar_url().unwrap_or_default())
-        .author(|a|
-          a.name(format!("{} is ready!", ready.user.name))
-        )
-    )
-  }).await?;
+  serenity::ChannelId(865673694184996888).send_message(&ctx.http, |m| m.embed(|e|
+    e.color(COLOR)
+      .thumbnail(ready.user.avatar_url().unwrap_or_default())
+      .author(|a|
+        a.name(format!("{} is ready!", ready.user.name))
+      )
+  )).await?;
 
   let register_commands = std::env::var("REGISTER_CMDS").unwrap_or_else(|_| String::from("true")).parse::<bool>().unwrap_or(true);
 
@@ -58,10 +56,15 @@ async fn main() {
         commands::data::data()
       ],
       pre_command: |ctx| Box::pin(async move {
-          println!("{} ran /{}", ctx.author().name, ctx.command().name)
-        }),
+        let get_guild_name = match ctx.guild() {
+          Some(guild) => guild.name.clone(),
+          None => String::from("DM")
+        };
+        println!("[{}] {} ran /{}", get_guild_name, ctx.author().name, ctx.command().qualified_name)
+      }),
       ..Default::default()
-    }).setup(|ctx, ready, framework| Box::pin(on_ready(ctx, ready, framework)))
+    })
+    .setup(|ctx, ready, framework| Box::pin(on_ready(ctx, ready, framework)))
     .build().await.expect("Error while building the client");
 
   if let Err(why) = client.start().await {
