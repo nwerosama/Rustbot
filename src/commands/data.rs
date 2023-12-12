@@ -26,6 +26,16 @@ pub async fn data(
   let map = server["mapName"].as_str().unwrap();
   let slot_cap = slots["capacity"].as_i64().unwrap();
   let slot_cur = slots["used"].as_i64().unwrap();
+  let daytime = server["dayTime"].as_i64().unwrap();
+  // println!("{}", daytime);
+
+  // todo: Add careerSavegame support when passing in DSS url.
+  // So I can get the following values for Autosave, Timescale and Slot usage.
+
+  // Convert dayTime (ms) to a military time format
+  let hour = (daytime / 3600 / 1000) % 24;
+  let minute = (daytime / 60 / 1000) % 60;
+  let time = format!("{:02}:{:02}", hour, minute);
 
   ctx.send(|m| m.embed(|e| e.color(crate::COLOR)
     .author(|a|
@@ -36,7 +46,7 @@ pub async fn data(
     .fields(vec![
       ("Map", map, true),
       ("Version", ver, true),
-      ("Time", "xx:xx", true),
+      ("Time", &time, true),
       ("Slot usage", "xx/xx", true),
       ("Autosave", "xx", true),
       ("Timescale", "0x", true)
