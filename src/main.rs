@@ -50,7 +50,8 @@ async fn main() {
       commands: vec![
         commands::ping::ping(),
         commands::eval::eval(),
-        commands::data::data()
+        commands::data::data(),
+        commands::uptime::uptime()
       ],
       pre_command: |ctx| Box::pin(async move {
         let get_guild_name = match ctx.guild() {
