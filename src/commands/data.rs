@@ -37,7 +37,7 @@ pub async fn data(
   let minute = (daytime / 60 / 1000) % 60;
   let time = format!("{:02}:{:02}", hour, minute);
 
-  ctx.send(|m| m.embed(|e| e.color(crate::COLOR)
+  ctx.send(|m| m.embed(|e| e.color(crate::EMBED_COLOR)
     .author(|a|
       a.name(format!("{}/{}", slot_cur, slot_cap))
     )
