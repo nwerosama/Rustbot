@@ -8,7 +8,7 @@ use std::{
 };
 
 const WHITELISTED_USERS: &[UserId] = &[
-  UserId(190407856527376384)
+  UserId::new(190407856527376384)
 ];
 
 /// Evaluate a piece of code
