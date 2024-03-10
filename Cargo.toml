@@ -3,8 +3,6 @@ name = "rustbot"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 poise = "0.6.1"
 reqwest = { version = "0.11.25", features = ["json"] }
@@ -14,6 +12,7 @@ tempfile = "3.10.1"
 sysinfo = "0.30.7"
 tokio = { version = "1.36.0", features = ["macros", "signal", "rt-multi-thread"] }
 uptime_lib = "0.3.0"
+serde = "1.0.197"
 
 [[bin]]
 name = "rustbot"
@@ -26,3 +25,4 @@ debug = true
 [profile.release]
 opt-level = 3
 debug = false
+strip = true

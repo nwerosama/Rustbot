@@ -8,6 +8,8 @@ use serenity::{
     CreateEmbed,
     CreateEmbedAuthor
   },
+  Context,
+  Ready,
   ClientBuilder,
   GatewayIntents
 };
@@ -18,8 +20,8 @@ pub static EMBED_COLOR: i32 = 0xf1d63c;
 static BOT_READY_NOTIFY: u64 = 865673694184996888;
 
 async fn on_ready(
-  ctx: &serenity::Context,
-  ready: &serenity::Ready,
+  ctx: &Context,
+  ready: &Ready,
   framework: &poise::Framework<(), Error>
 ) -> Result<(), Error> {
   println!("Connected to API as {}", ready.user.name);
@@ -40,8 +42,8 @@ async fn on_ready(
 
     match commands {
       Ok(cmdmap) => for command in cmdmap.iter() {
-          println!("Registered command globally: {}", command.name);
-        },
+        println!("Registered command globally: {}", command.name);
+      },
       Err(why) => println!("Error registering commands: {:?}", why)
     }
   }
@@ -58,7 +60,6 @@ async fn main() {
       commands: vec![
         commands::ping::ping(),
         commands::eval::eval(),
-        commands::data::data(),
         commands::uptime::uptime()
       ],
       pre_command: |ctx| Box::pin(async move {
@@ -68,6 +69,15 @@ async fn main() {
         };
         println!("[{}] {} ran /{}", get_guild_name, ctx.author().name, ctx.command().qualified_name)
       }),
+      on_error: |error| Box::pin(async move {
+        match error {
+          poise::FrameworkError::Command { error, ctx, .. } => {
+            println!("PoiseCommandError({}): {}", ctx.command().qualified_name, error);
+          }
+          other => println!("PoiseOtherError: {:?}", other)
+        }
+      }),
+      initialize_owners: true,
       ..Default::default()
     })
     .setup(|ctx, ready, framework| Box::pin(on_ready(ctx, ready, framework)))
