@@ -1,4 +1,11 @@
-use crate::Error;
+use crate::{
+  Error,
+  utils::{
+    format_duration,
+    concat_message,
+    BOT_VERSION
+  }
+};
 
 use sysinfo::System;
 use uptime_lib::get;
@@ -11,6 +18,7 @@ use std::time::{
 /// Retrieve host and bot uptimes
 #[poise::command(slash_command)]
 pub async fn uptime(ctx: poise::Context<'_, (), Error>) -> Result<(), Error> {
+  let _bot = ctx.http().get_current_user().await.unwrap();
   let mut sys = System::new_all();
   sys.refresh_all();
 
@@ -26,27 +34,12 @@ pub async fn uptime(ctx: poise::Context<'_, (), Error>) -> Result<(), Error> {
     proc_uptime = now.duration_since(time_started).unwrap().as_secs();
   }
 
-  ctx.reply(format!("System: `{}`\nProcess: `{}`", format_duration(sys_uptime), format_duration(proc_uptime))).await?;
+  let stat_msg = vec![
+    format!("**{} {}**", _bot.name, &**BOT_VERSION),
+    format!(">>> System: `{}`", format_duration(sys_uptime)),
+    format!("Process: `{}`", format_duration(proc_uptime))
+  ];
+  ctx.reply(concat_message(stat_msg)).await?;
+
   Ok(())
-}
-
-fn format_duration(secs: u64) -> String {
-  let days = secs / 86400;
-  let hours = (secs % 86400) / 3600;
-  let minutes = (secs % 3600) / 60;
-  let seconds = secs % 60;
-
-  let mut formatted_string = String::new();
-  if days > 0 {
-    formatted_string.push_str(&format!("{}d, ", days));
-  }
-  if hours > 0 || days > 0 {
-    formatted_string.push_str(&format!("{}h, ", hours));
-  }
-  if minutes > 0 || hours > 0 {
-    formatted_string.push_str(&format!("{}m, ", minutes));
-  }
-  formatted_string.push_str(&format!("{}s", seconds));
-
-  formatted_string
 }

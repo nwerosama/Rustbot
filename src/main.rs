@@ -1,7 +1,11 @@
 mod commands;
+mod utils;
 
-use std::env::var;
 use poise::serenity_prelude::{self as serenity};
+use std::{
+  env::var,
+  error
+};
 use serenity::{
   builder::{
     CreateMessage,
@@ -14,9 +18,8 @@ use serenity::{
   GatewayIntents
 };
 
-type Error = Box<dyn std::error::Error + Send + Sync>;
+type Error = Box<dyn error::Error + Send + Sync>;
 
-pub static EMBED_COLOR: i32 = 0xf1d63c;
 static BOT_READY_NOTIFY: u64 = 865673694184996888;
 
 async fn on_ready(
@@ -28,7 +31,7 @@ async fn on_ready(
 
   let message = CreateMessage::new();
   let ready_embed = CreateEmbed::new()
-    .color(EMBED_COLOR)
+    .color(utils::EMBED_COLOR)
     .thumbnail(ready.user.avatar_url().unwrap_or_default())
     .author(CreateEmbedAuthor::new(format!("{} is ready!", ready.user.name)).clone());
 
