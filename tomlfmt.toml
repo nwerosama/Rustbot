@@ -16,4 +16,3 @@ crlf = false
 trailing_newline = false
 space_around_eq = true
 allowed_blank_lines = 1
-
