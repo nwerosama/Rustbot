@@ -1,5 +1,5 @@
 mod commands;
-mod utils;
+mod internals;
 
 use poise::serenity_prelude::{self as serenity};
 use std::{
@@ -31,7 +31,7 @@ async fn on_ready(
 
   let message = CreateMessage::new();
   let ready_embed = CreateEmbed::new()
-    .color(utils::EMBED_COLOR)
+    .color(internals::utils::EMBED_COLOR)
     .thumbnail(ready.user.avatar_url().unwrap_or_default())
     .author(CreateEmbedAuthor::new(format!("{} is ready!", ready.user.name)).clone());
 
