@@ -1,12 +1,11 @@
 mod commands;
 mod internals;
 
-use poise::serenity_prelude::{self as serenity};
 use std::{
   env::var,
   error
 };
-use serenity::{
+use poise::serenity_prelude::{
   builder::{
     CreateMessage,
     CreateEmbed,
@@ -15,6 +14,8 @@ use serenity::{
   Context,
   Ready,
   ClientBuilder,
+  ChannelId,
+  Command,
   GatewayIntents
 };
 
@@ -35,13 +36,13 @@ async fn on_ready(
     .thumbnail(ready.user.avatar_url().unwrap_or_default())
     .author(CreateEmbedAuthor::new(format!("{} is ready!", ready.user.name)).clone());
 
-  serenity::ChannelId::new(BOT_READY_NOTIFY).send_message(&ctx.http, message.add_embed(ready_embed)).await?;
+  ChannelId::new(BOT_READY_NOTIFY).send_message(&ctx.http, message.add_embed(ready_embed)).await?;
 
   let register_commands = var("REGISTER_CMDS").unwrap_or_else(|_| String::from("true")).parse::<bool>().unwrap_or(true);
 
   if register_commands {
     let builder = poise::builtins::create_application_commands(&framework.options().commands);
-    let commands = serenity::Command::set_global_commands(&ctx.http, builder).await;
+    let commands = Command::set_global_commands(&ctx.http, builder).await;
 
     match commands {
       Ok(cmdmap) => for command in cmdmap.iter() {
