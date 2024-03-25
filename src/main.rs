@@ -1,4 +1,6 @@
 mod commands;
+mod controllers;
+mod models;
 mod internals;
 
 use std::{
@@ -58,13 +60,15 @@ async fn on_ready(
 #[tokio::main]
 async fn main() {
   let token = var("DISCORD_TOKEN").expect("Expected a \"DISCORD_TOKEN\" in the envvar but none was found");
+  let db = controllers::database::DatabaseController::new().await.expect("Failed to connect to database");
 
   let framework = poise::Framework::builder()
     .options(poise::FrameworkOptions {
       commands: vec![
         commands::ping::ping(),
         commands::eval::eval(),
-        commands::uptime::uptime()
+        commands::uptime::uptime(),
+        commands::sample::sample()
       ],
       pre_command: |ctx| Box::pin(async move {
         let get_guild_name = match ctx.guild() {
@@ -87,7 +91,14 @@ async fn main() {
     .setup(|ctx, ready, framework| Box::pin(on_ready(ctx, ready, framework)))
     .build();
 
-  let mut client = ClientBuilder::new(token, GatewayIntents::GUILDS).framework(framework).await.expect("Error creating client");
+  let mut client = ClientBuilder::new(token, GatewayIntents::GUILDS)
+    .framework(framework)
+    .await.expect("Error creating client");
+
+  {
+    let mut data = client.data.write().await;
+    data.insert::<controllers::database::DatabaseController>(db);
+  }
 
   if let Err(why) = client.start().await {
     println!("Client error: {:?}", why);
