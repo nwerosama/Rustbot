@@ -2,4 +2,7 @@
 target
 .env
 .gitignore
+docker-compose.yml
+Dockerfile
 renovate.json
+run.sh

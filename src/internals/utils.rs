@@ -4,7 +4,12 @@ use tokenservice_client::TokenServiceApi;
 pub static EMBED_COLOR: i32 = 0xf1d63c;
 
 pub static BOT_VERSION: Lazy<String> = Lazy::new(|| {
-  let cargo_version = cargo_toml::Manifest::from_path("Cargo.toml").unwrap().package.unwrap().version.unwrap();
+  let cargo_version = cargo_toml::Manifest::from_path("./Cargo.toml")
+    .unwrap()
+    .package
+    .unwrap()
+    .version
+    .unwrap();
   format!("v{}", cargo_version)
 });
 
