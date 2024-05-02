@@ -1,4 +1,4 @@
-FROM rust:1.78-alpine3.19@sha256:eb37f58646a901dc7727cf448cae36daaefaba79de33b5058dab79aa4c04aefb AS compiler
+FROM rust:1.78-alpine3.19@sha256:9b421636ae538fda3c7b98d52a5048d2a09abb7ff76e0298709cc2509fd045a7 AS compiler
 ENV RUSTFLAGS="-C target-feature=-crt-static"
 RUN apk add --no-cache openssl-dev musl-dev 
 WORKDIR /usr/src/rustbot
