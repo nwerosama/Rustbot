@@ -16,7 +16,7 @@ RUN cargo chef cook --release
 COPY . .
 RUN cargo build -r
 
-FROM alpine:3.20@sha256:8768f0ca8ce33ec230c116364fbaebc1e18aaabbbda1ced56658f5eb0012202b
+FROM alpine:3.20@sha256:f08d666161afe0114ee8e925b254456eb79e2ece8a52d7a8979199bfd4fc3ed2
 RUN apk add --no-cache libgcc
 WORKDIR /rustbot
 COPY --from=builder /usr/src/rustbot/target/release/rustbot .
