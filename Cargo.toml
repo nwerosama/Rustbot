@@ -9,7 +9,7 @@ once_cell = "1.19.0"
 poise = "0.6.1"
 sysinfo = "0.30.12"
 tempfile = "3.10.1"
-tokenservice-client = { version = "0.2.6", registry = "gitea" }
+tokenservice-client = { version = "0.2.8", registry = "gitea" }
 tokio = { version = "1.38.0", features = ["macros", "signal", "rt-multi-thread"] }
 tokio-postgres = "0.7.10"
 uptime_lib = "0.3.0"
