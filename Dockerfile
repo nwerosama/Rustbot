@@ -1,4 +1,4 @@
-FROM rust:1.79-alpine3.19@sha256:aeeebbf58f579ef6037fd59f0917b31c89f7842155e24332de7d604e0284956e AS chef
+FROM rust:1.79-alpine3.19@sha256:987333dba5b5e5cc845194a8818b9bebb8a2513f0c5447ef077499bc50636caf AS chef
 ENV RUSTFLAGS -C target-feature=-crt-static
 RUN apk add --no-cache openssl-dev musl-dev
 RUN cargo install cargo-chef 
