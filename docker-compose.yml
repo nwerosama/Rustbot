@@ -11,7 +11,7 @@ services:
       - db
   db:
     container_name: rustbot-database
-    image: postgres:16.3-alpine3.19@sha256:ddee0e40c391ff5f4b2f021cf7c8093dc8251f82a165435be0f32e2d852988c5
+    image: postgres:16.3-alpine3.19@sha256:fd9074ac8f323a7c54decb3cb0c7febc4c13d39a91456e2f702dfa66d03fa14d
     restart: unless-stopped
     ports:
       - 37931:5432/tcp
