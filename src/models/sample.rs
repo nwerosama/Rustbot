@@ -1,4 +1,6 @@
-use crate::controllers::database::DatabaseController;
+use crate::controllers::database::DATABASE;
+
+use std::ops::Deref;
 
 pub struct SampleData {
   pub id: i64,
@@ -9,7 +11,13 @@ pub struct SampleData {
 
 impl SampleData {
   pub async fn list_data(id: u64) -> Result<Vec<Self>, tokio_postgres::Error> {
-    let client = DatabaseController::new().await?.client;
+    let pool = {
+      let db = DATABASE.lock().unwrap();
+      let controller = db.as_ref().unwrap();
+      controller.pool.clone()
+    };
+    let conn = pool.get().await.unwrap();
+    let client = conn.deref();
     let rows = client.query("
       SELECT * FROM sample
       WHERE id = $1
@@ -33,7 +41,13 @@ impl SampleData {
     int: i64,
     boolean: bool
   ) -> Result<(), tokio_postgres::Error> {
-    let client = DatabaseController::new().await?.client;
+    let pool = {
+      let db = DATABASE.lock().unwrap();
+      let controller = db.as_ref().unwrap();
+      controller.pool.clone()
+    };
+    let conn = pool.get().await.unwrap();
+    let client = conn.deref();
     client.execute("
       INSERT INTO sample (text_val, int_val, boolean_val)
       VALUES ($1, $2, $3)
@@ -48,7 +62,13 @@ impl SampleData {
     int: i64,
     boolean: bool
   ) -> Result<(), tokio_postgres::Error> {
-    let client = DatabaseController::new().await?.client;
+    let pool = {
+      let db = DATABASE.lock().unwrap();
+      let controller = db.as_ref().unwrap();
+      controller.pool.clone()
+    };
+    let conn = pool.get().await.unwrap();
+    let client = conn.deref();
     client.execute("
       UPDATE sample
       SET text_val = $1, int_val = $2, boolean_val = $3
@@ -59,7 +79,13 @@ impl SampleData {
   }
 
   pub async fn delete_data(id: u64) -> Result<(), tokio_postgres::Error> {
-    let client = DatabaseController::new().await?.client;
+    let pool = {
+      let db = DATABASE.lock().unwrap();
+      let controller = db.as_ref().unwrap();
+      controller.pool.clone()
+    };
+    let conn = pool.get().await.unwrap();
+    let client = conn.deref();
     client.execute("
       DELETE FROM sample
       WHERE id = $1

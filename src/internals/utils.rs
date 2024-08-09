@@ -1,10 +1,11 @@
-use once_cell::sync::Lazy;
+use poise::serenity_prelude::UserId;
+use std::sync::LazyLock;
+use tokio::sync::Mutex;
 use tokenservice_client::TokenServiceApi;
+use super::tsclient::TSClient;
 
-pub static EMBED_COLOR: i32 = 0xf1d63c;
-
-pub static BOT_VERSION: Lazy<String> = Lazy::new(|| {
-  let cargo_version = cargo_toml::Manifest::from_path("./Cargo.toml")
+pub static BOT_VERSION: LazyLock<String> = LazyLock::new(|| {
+  let cargo_version = cargo_toml::Manifest::from_str(&include_str!("../../Cargo.toml"))
     .unwrap()
     .package
     .unwrap()
@@ -13,13 +14,33 @@ pub static BOT_VERSION: Lazy<String> = Lazy::new(|| {
   format!("v{}", cargo_version)
 });
 
+static TSCLIENT: LazyLock<Mutex<TSClient>> = LazyLock::new(|| Mutex::new(TSClient::new()));
+
 pub async fn token_path() -> TokenServiceApi {
-  let client = super::tsclient::TSClient::new().get().await.unwrap();
-  client
+  TSCLIENT.lock().await.get().await.unwrap()
 }
 
 pub fn concat_message(messages: Vec<String>) -> String {
   messages.join("\n")
+}
+
+pub fn mention_dev(ctx: poise::Context<'_, (), crate::Error>) -> Option<String> {
+  let devs = super::config::BINARY_PROPERTIES.developers.clone();
+  let app_owners = ctx.framework().options().owners.clone();
+
+  let mut mentions = Vec::new();
+
+  for dev in devs {
+    if app_owners.contains(&UserId::new(dev)) {
+      mentions.push(format!("<@{}>", dev));
+    }
+  }
+
+  if mentions.is_empty() {
+    None
+  } else {
+    Some(mentions.join(", "))
+  }
 }
 
 pub fn format_duration(secs: u64) -> String {
@@ -43,15 +64,23 @@ pub fn format_duration(secs: u64) -> String {
   formatted_string
 }
 
-/* pub fn format_memory(bytes: u64) -> String {
-  let kb = 1024;
-  let mb = 1024 * 1024;
-  let gb = 1024 * 1024 * 1024;
+pub fn format_bytes(bytes: u64) -> String {
+  let units = ["B", "KB", "MB", "GB", "TB", "PB"];
+  let mut value = bytes as f64;
+  let mut unit = units[0];
 
-  match bytes {
-    b if b >= gb => format!("{:.0} GB", (b as f64 / (1024.0 * 1024.0 * 1024.0)).ceil()),
-    b if b >= mb => format!("{:.0} MB", (b as f64 / (1024.0 * 1024.0)).ceil()),
-    b if b >= kb => format!("{:.0} KB", (b as f64 / 1024.0).ceil()),
-    _ => format!("{:.0} B", bytes),
+  for &u in &units[1..] {
+    if value < 1024.0 {
+      break;
+    }
+
+    value /= 1024.0;
+    unit = u;
   }
-} */
+
+  if unit == "B" {
+    format!("{}{}", value, unit)
+  } else {
+    format!("{:.2}{}", value, unit)
+  }
+}

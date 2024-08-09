@@ -2,10 +2,30 @@ mod commands;
 mod controllers;
 mod models;
 mod internals;
+// https://cdn.toast-server.net/RustFSHiearchy.png
+// Using the new filesystem hierarchy
+
+use crate::{
+  internals::{
+    utils::{
+      BOT_VERSION,
+      token_path,
+      mention_dev
+    },
+    config::BINARY_PROPERTIES
+  },
+  controllers::database::DatabaseController
+};
 
 use std::{
-  env::var,
-  error
+  thread::current,
+  sync::{
+    Arc,
+    atomic::{
+      AtomicBool,
+      Ordering
+    }
+  }
 };
 use poise::serenity_prelude::{
   builder::{
@@ -13,45 +33,131 @@ use poise::serenity_prelude::{
     CreateEmbed,
     CreateEmbedAuthor
   },
-  Context,
   Ready,
+  Context,
+  FullEvent,
   ClientBuilder,
   ChannelId,
   Command,
   GatewayIntents
 };
 
-type Error = Box<dyn error::Error + Send + Sync>;
+type Error = Box<dyn std::error::Error + Send + Sync>;
+static TASK_RUNNING: AtomicBool = AtomicBool::new(false);
 
-static BOT_READY_NOTIFY: u64 = 865673694184996888;
+#[cfg(feature = "production")]
+pub static GIT_COMMIT_HASH: &str = env!("GIT_COMMIT_HASH");
+#[cfg(not(feature = "production"))]
+pub static GIT_COMMIT_HASH: &str = "devel";
 
 async fn on_ready(
   ctx: &Context,
   ready: &Ready,
   framework: &poise::Framework<(), Error>
 ) -> Result<(), Error> {
-  println!("Connected to API as {}", ready.user.name);
+  #[cfg(not(feature = "production"))]
+  {
+    println!("Event[Ready][Notice]: Detected a non-production environment!");
+    let gateway = ctx.http.get_bot_gateway().await?;
+    let session = gateway.session_start_limit;
+    println!("Event[Ready][Notice]: Session limit: {}/{}", session.remaining, session.total);
+  }
+
+  println!("Event[Ready]: Build version: {} ({})", BOT_VERSION.to_string(), GIT_COMMIT_HASH);
+  println!("Event[Ready]: Connected to API as {}", ready.user.name);
 
   let message = CreateMessage::new();
   let ready_embed = CreateEmbed::new()
-    .color(internals::utils::EMBED_COLOR)
+    .color(BINARY_PROPERTIES.embed_color)
     .thumbnail(ready.user.avatar_url().unwrap_or_default())
-    .author(CreateEmbedAuthor::new(format!("{} is ready!", ready.user.name)).clone());
+    .author(CreateEmbedAuthor::new(format!("{} is ready!", ready.user.name)));
 
-  ChannelId::new(BOT_READY_NOTIFY).send_message(&ctx.http, message.add_embed(ready_embed)).await?;
+  ChannelId::new(BINARY_PROPERTIES.ready_notify).send_message(&ctx.http, message.add_embed(ready_embed)).await?;
 
-  let register_commands = var("REGISTER_CMDS").unwrap_or_else(|_| String::from("true")).parse::<bool>().unwrap_or(true);
-
-  if register_commands {
+  if BINARY_PROPERTIES.deploy_commands {
     let builder = poise::builtins::create_application_commands(&framework.options().commands);
     let commands = Command::set_global_commands(&ctx.http, builder).await;
+    let mut commands_deployed = std::collections::HashSet::new();
 
     match commands {
       Ok(cmdmap) => for command in cmdmap.iter() {
-        println!("Registered command globally: {}", command.name);
+        commands_deployed.insert(command.name.clone());
       },
-      Err(why) => println!("Error registering commands: {:?}", why)
+      Err(y) => eprintln!("Error registering commands: {:?}", y)
     }
+
+    if commands_deployed.len() > 0 {
+      println!("Event[Ready]: Deployed the commands globally:\n- {}", commands_deployed.into_iter().collect::<Vec<_>>().join("\n- "));
+    }
+  }
+
+  Ok(())
+}
+
+async fn event_processor(
+  ctx: &Context,
+  event: &FullEvent,
+  framework: poise::FrameworkContext<'_, (), Error>
+) -> Result<(), Error> {
+  match event {
+    FullEvent::Ratelimit { data } => {
+      println!("Event[Ratelimit]: {:#?}", data);
+    }
+    FullEvent::Message { new_message } => {
+      if new_message.author.bot || !new_message.guild_id.is_none() {
+        return Ok(());
+      }
+
+      if new_message.content.to_lowercase().starts_with("deploy") && new_message.author.id == BINARY_PROPERTIES.developers[0] {
+        let builder = poise::builtins::create_application_commands(&framework.options().commands);
+        let commands = Command::set_global_commands(&ctx.http, builder).await;
+        let mut commands_deployed = std::collections::HashSet::new();
+
+        match commands {
+          Ok(cmdmap) => for command in cmdmap.iter() {
+            commands_deployed.insert(command.name.clone());
+          },
+          Err(y) => {
+            eprintln!("Error registering commands: {:?}", y);
+            new_message.reply(&ctx.http, "Deployment failed, check console for more details!").await?;
+          }
+        }
+
+        if commands_deployed.len() > 0 {
+          new_message.reply(&ctx.http, format!(
+            "Deployed the commands globally:\n- {}",
+            commands_deployed.into_iter().collect::<Vec<_>>().join("\n- ")
+          )).await?;
+        }
+      }
+    }
+    FullEvent::Ready { .. } => {
+      let thread_id = format!("{:?}", current().id());
+      let thread_num: String = thread_id.chars().filter(|c| c.is_digit(10)).collect();
+      println!("Event[Ready]: Task Scheduler operating on thread {}", thread_num);
+
+      let ctx = Arc::new(ctx.clone());
+
+      if !TASK_RUNNING.load(Ordering::SeqCst) {
+        TASK_RUNNING.store(true, Ordering::SeqCst);
+
+        tokio::spawn(async move {
+          match internals::tasks::sample::sample(ctx).await {
+            Ok(_) => {},
+            Err(y) => {
+              eprintln!("TaskScheduler[Main:Sample:Error]: Task execution failed: {}", y);
+              if let Some(source) = y.source() {
+                eprintln!("TaskScheduler[Main:Sample:Error]: Task execution failed caused by: {:#?}", source);
+              }
+            }
+          }
+          TASK_RUNNING.store(false, Ordering::SeqCst);
+        });
+      } else {
+        println!("TaskScheduler[Main:Notice]: Another thread is already running, ignoring");
+      }
+    }
+    _ => {}
   }
 
   Ok(())
@@ -59,47 +165,59 @@ async fn on_ready(
 
 #[tokio::main]
 async fn main() {
-  let db = controllers::database::DatabaseController::new().await.expect("Failed to connect to database");
+  DatabaseController::new().await.expect("Error initializing database");
 
   let framework = poise::Framework::builder()
     .options(poise::FrameworkOptions {
       commands: vec![
         commands::ping::ping(),
-        commands::eval::eval(),
-        commands::uptime::uptime(),
-        commands::sample::sample()
+        commands::sample::sample(),
+        commands::midi::midi_to_wav(),
+        commands::uptime::uptime()
       ],
       pre_command: |ctx| Box::pin(async move {
         let get_guild_name = match ctx.guild() {
           Some(guild) => guild.name.clone(),
-          None => String::from("DM")
+          None => String::from("Direct Message")
         };
-        println!("[{}] {} ran /{}", get_guild_name, ctx.author().name, ctx.command().qualified_name)
+        println!("Discord[{}]: {} ran /{}", get_guild_name, ctx.author().name, ctx.command().qualified_name);
       }),
       on_error: |error| Box::pin(async move {
         match error {
           poise::FrameworkError::Command { error, ctx, .. } => {
             println!("PoiseCommandError({}): {}", ctx.command().qualified_name, error);
-          }
-          other => println!("PoiseOtherError: {:?}", other)
+            ctx.reply(format!(
+              "Encountered an error during command execution, ask {} to check console for more details!",
+              mention_dev(ctx).unwrap_or_default()
+            )).await.expect("Error sending message");
+          },
+          poise::FrameworkError::EventHandler { error, event, .. } => println!("PoiseEventHandlerError({}): {}", event.snake_case_name(), error),
+          poise::FrameworkError::Setup { error, .. } => println!("PoiseSetupError: {}", error),
+          poise::FrameworkError::UnknownInteraction { interaction, .. } => println!(
+            "PoiseUnknownInteractionError: {} tried to execute an unknown interaction ({})",
+            interaction.user.name,
+            interaction.data.name
+          ),
+          other => println!("PoiseOtherError: {}", other)
         }
       }),
       initialize_owners: true,
+      event_handler: |ctx, event, framework, _| Box::pin(event_processor(ctx, event, framework)),
       ..Default::default()
     })
     .setup(|ctx, ready, framework| Box::pin(on_ready(ctx, ready, framework)))
     .build();
 
-  let mut client = ClientBuilder::new(internals::utils::token_path().await.main, GatewayIntents::GUILDS)
-    .framework(framework)
-    .await.expect("Error creating client");
-
-  {
-    let mut data = client.data.write().await;
-    data.insert::<controllers::database::DatabaseController>(db);
-  }
+  let mut client = ClientBuilder::new(
+    token_path().await.main,
+    GatewayIntents::GUILDS
+    | GatewayIntents::MESSAGE_CONTENT
+    | GatewayIntents::DIRECT_MESSAGES
+  )
+  .framework(framework)
+  .await.expect("Error creating client");
 
   if let Err(why) = client.start().await {
-    println!("Client error: {:?}", why);
+    println!("Error starting client: {:#?}", why);
   }
 }

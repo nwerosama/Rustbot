@@ -1,23 +1,24 @@
-FROM rust:1.80-alpine3.19@sha256:b3ac1f65cf33390407c9b90558eb41e7a8311c47d836fca5800960f1aa2d11d5 AS chef
-ENV RUSTFLAGS -C target-feature=-crt-static
+FROM rust:1.80-alpine3.20 AS chef
+ENV RUSTFLAGS="-C target-feature=-crt-static"
+ARG GIT_HASH
+ENV GIT_COMMIT_HASH=${GIT_HASH}
 RUN apk add --no-cache openssl-dev musl-dev
 RUN cargo install cargo-chef 
-WORKDIR /usr/src/rustbot
+WORKDIR /builder
 
 FROM chef AS planner
 COPY . .
-RUN mkdir -p .cargo && \
-  printf '[registries.gitea]\nindex = "sparse+https://git.toast-server.net/api/packages/toast/cargo/"\ntoken = "Bearer %s"\n' "$CARGO_TOKEN" >> .cargo/config.toml
 RUN cargo chef prepare
 
 FROM chef AS builder
-COPY --from=planner /usr/src/rustbot/recipe.json recipe.json
+COPY --from=planner /builder/recipe.json recipe.json
 RUN cargo chef cook --release
 COPY . .
-RUN cargo build -r
+RUN cargo build --offline -rF production
 
-FROM alpine:3.20@sha256:0a4eaa0eecf5f8c050e5bba433f58c052be7587ee8af3e8b3910ef9ab5fbe9f5
+FROM alpine:3.20
+LABEL org.opencontainers.image.source="https://git.toast-server.net/toast/Rustbot"
 RUN apk add --no-cache libgcc
 WORKDIR /rustbot
-COPY --from=builder /usr/src/rustbot/target/release/rustbot .
+COPY --from=builder /builder/target/release/rustbot .
 CMD ./rustbot
