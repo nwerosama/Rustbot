@@ -16,7 +16,7 @@ RUN cargo chef cook --release
 COPY . .
 RUN cargo build --offline -rF production
 
-FROM alpine:3.20@sha256:e417839c51cd76908ea4ec131f132ac80a9e77d345d8a4dbc3ab2ab784f8ee6c
+FROM alpine:3.20@sha256:6eee963cdd9be4b3423dd221bc4b5b0458a9c459990c0b5095b5aee7c43e92a2
 LABEL org.opencontainers.image.source="https://git.toast-server.net/toast/Rustbot"
 RUN apk add --no-cache libgcc
 WORKDIR /rustbot
