@@ -2173,9 +2173,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokenservice-client"
-version = "0.4.0"
+version = "0.4.1"
 source = "sparse+https://git.toast-server.net/api/packages/toast/cargo/"
-checksum = "69fb4574f5ff7b98c91c98d3a8be2eb4c55a895c44f0682aa269c67b5922bbf8"
+checksum = "cf11991da505b67c1a8201aa2d4746eefe338d34ce8d985c93474672d900c5cd"
 dependencies = [
  "reqwest 0.12.7",
  "serde",
