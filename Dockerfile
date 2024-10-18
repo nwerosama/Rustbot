@@ -1,4 +1,4 @@
-FROM rust:1.82-alpine3.20@sha256:d6cfd310568092632c4346f45c07e08cbea3b1aaea0d23d4a2fdda0fe3b75dfa AS chef
+FROM rust:1.82-alpine3.20@sha256:466dc9924d265455aa73e72fd9cdac9db69ce6a988e6f0e6baf852db3485d97d AS chef
 ENV RUSTFLAGS="-C target-feature=-crt-static"
 ARG GIT_HASH
 ENV GIT_COMMIT_HASH=${GIT_HASH}
