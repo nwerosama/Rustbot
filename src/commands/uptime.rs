@@ -100,7 +100,7 @@ pub async fn uptime(ctx: PoiseContext<'_>) -> Result<(), RustbotError> {
   };
 
   let stat_msg = [
-    format!("**{} v{}** `{}:{}`", bot.name, BOT_VERSION.as_str(), GIT_COMMIT_HASH, GIT_COMMIT_BRANCH),
+    format!("**{} v{}** `{GIT_COMMIT_HASH}:{GIT_COMMIT_BRANCH}`", bot.name, *BOT_VERSION),
     format!(">>> System: `{}`", format_duration(sys_uptime)),
     format!("Process: `{}`", format_duration(proc_uptime)),
     format!("Node: `{docker_node}`"),
