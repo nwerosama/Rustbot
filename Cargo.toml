@@ -3,21 +3,41 @@ name = "rustbot"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
-bb8 = "0.8.5"
-bb8-postgres = "0.8.1"
-cargo_toml = "0.20.4"
-once_cell = "1.19.0"
+[workspace]
+members = [
+  "events",
+  "jobs",
+  "library",
+  "tsclient"
+]
+
+[workspace.dependencies]
+cargo_toml = "0.20.5"
 poise = "0.6.1"
-regex = "1.10.6"
+regex = "1.11.0"
+serde = "1.0.210"
+tokio = { version = "1.40.0", features = ["macros", "rt-multi-thread"] }
+reqwest = { version = "0.12.8", features = ["native-tls-vendored"] }
+
+[dependencies]
+rustbot_events = { path = "events" }
+rustbot_lib = { path = "library" }
+rustbot_tokens = { path = "tsclient" }
+poise = { workspace = true }
+rand = "0.8.5"
+reqwest = { workspace = true }
+serde = { workspace = true }
 sysinfo = "0.32.0"
-tokenservice-client = { version = "0.4.0", registry = "gitea" }
-tokio = { version = "1.39.2", features = ["macros", "signal", "rt-multi-thread"] }
-tokio-postgres = "0.7.11"
+time = "0.3.36"
+tokio = { workspace = true }
 uptime_lib = "0.3.1"
 
+[patch.crates-io]
+poise = { git = "https://github.com/serenity-rs/poise", branch = "serenity-next" }
+
 [features]
-production = []
+production = ["rustbot_lib/production", "rustbot_events/production"]
+not_ready = ["rustbot_lib/not_ready"]
 
 [[bin]]
 name = "rustbot"

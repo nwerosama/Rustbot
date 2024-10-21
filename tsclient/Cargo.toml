@@ -1,0 +1,8 @@
+[package]
+name = "rustbot_tokens"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokenservice-client = { version = "0.4.1", registry = "gitea" }
+tokio = { workspace = true }

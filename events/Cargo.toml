@@ -1,0 +1,12 @@
+[package]
+name = "rustbot_events"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rustbot_lib = { path = "../library" }
+poise = { workspace = true }
+
+[features]
+production = ["rustbot_lib/production"]
+not_ready = ["rustbot_lib/not_ready"]

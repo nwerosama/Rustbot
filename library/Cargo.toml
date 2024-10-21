@@ -1,0 +1,13 @@
+[package]
+name = "rustbot_lib"
+version = "0.1.19"
+edition = "2021"
+
+[dependencies]
+cargo_toml = { workspace = true }
+poise = { workspace = true }
+
+[features]
+production = ["docker"]
+docker = []
+not_ready = []

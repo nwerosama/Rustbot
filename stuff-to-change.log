@@ -1,0 +1,11 @@
+Only things that are needing to be changed before deploying this template to real-world use;
+- The project name (Rustbot)
+- Dockerfile image tag and its service in compose file
+- events (rustbot_events), and its references
+- jobs (rustbot_jobs), and its references
+- library (rustbot_lib), and its references
+- tsclient (rustbot_tokens), and its references
+
+Search by Rustbot in its usual form (all-caps, pascalcase, and such) to find all the references that need to be changed too.
+
+(and delete this file too!)
