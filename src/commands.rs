@@ -19,7 +19,7 @@ macro_rules! collect {
       // Utility commands
       commands::ping(),
       commands::uptime(),
-      
+
       // Unsorted mess
       commands::eightball(),
     ]

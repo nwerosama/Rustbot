@@ -1,11 +1,16 @@
 use crate::RustbotError;
 use super::PoiseContext;
 
+use poise::{
+  CreateReply,
+  serenity_prelude::ChannelId
+};
+
 /// Developer commands
 #[poise::command(
   prefix_command,
   owners_only,
-  subcommands("deploy", "servers", "shards")
+  subcommands("deploy", "servers", "shards", "echo")
 )]
 pub async fn dev(_: PoiseContext<'_>) -> Result<(), RustbotError> {
   Ok(())
@@ -45,6 +50,42 @@ async fn shards(ctx: PoiseContext<'_>) -> Result<(), RustbotError> {
   }
 
   ctx.reply(shard_info.join("\n\n")).await?;
+
+  Ok(())
+}
+
+/// Turn your message into a bot message
+#[poise::command(slash_command)]
+async fn echo(
+  ctx: super::PoiseContext<'_>,
+  #[description = "Message to be echoed as a bot"] message: String,
+  #[description = "Channel to send this to"]
+  #[channel_types("Text", "PublicThread", "PrivateThread")] channel: Option<ChannelId>
+) -> Result<(), RustbotError> {
+  ctx.defer_ephemeral().await?;
+
+  let channel = match channel {
+    Some(c) => c,
+    None => ctx.channel_id()
+  };
+
+  match ChannelId::new(channel.get()).say(ctx.http(), message).await {
+    Ok(_) => {
+      ctx.send(
+        CreateReply::new()
+          .content("Sent!")
+          .ephemeral(true)
+      ).await?;
+    },
+    Err(y) => {
+      ctx.send(
+        CreateReply::new()
+          .content(format!("Failed... `{y}`"))
+          .ephemeral(true)
+      ).await?;
+      return Ok(());
+    }
+  }
 
   Ok(())
 }

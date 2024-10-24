@@ -29,11 +29,26 @@ pub async fn eightball(
     }
   }
 
-  ctx.reply(format!(
-    "> {}\n{}",
-    question,
+  if question.to_ascii_lowercase().contains("rustbot, show chicken list") {
+    if ctx.author().id == UserId::new(BINARY_PROPERTIES.developers[0]) {
+      let chunks: Vec<String> = CHICKEN_RESPONSES.chunks(10).map(|chunk| chunk.join("\n\n")).collect();
+      let pages: Vec<&str> = chunks.iter().map(|s| s.as_str()).collect();
+      paginate(ctx, &pages).await?;
+
+      return Ok(());
+    } else {
+      ctx.reply("No.").await?;
+      return Ok(());
+    }
+  }
+
+  let rand_resp = if question.to_ascii_lowercase().contains("chicken") {
+    get_random_chicken_response()
+  } else {
     get_random_response()
-  )).await?;
+  };
+
+  ctx.reply(format!("> {question}\n{rand_resp}")).await?;
 
   Ok(())
 }
@@ -75,6 +90,48 @@ const RESPONSES: [&str; 30] = [
   "Try asking this to a chicken. Probably knows it better than I do!", // no
 ];
 
+const CHICKEN_RESPONSES: [&str; 35] = [
+  "Cluck cluck... Reply hazy, try pecking Google.", // no
+  "Meh... Figure it out yourself, or scratch around a bit.", // no
+  "I don’t know... what do you think? *pecks at ground*", // no
+  "BAWK! YES!", // yes
+  "Cluck... no.", // no
+  "It is decidedly so! *flaps wings*", // yes
+  "Signs point to... maybe... hold on, let me fluff my feathers... depends on whether you'd get to know your Magic Chicken a bit better.", // no
+  "Signs point to... ~~yes~~ cluck no.", // no
+  "Why do you want to know? It’s a big cluckin’ yes!", // yes
+  "Outlook not so clucking good.", // no
+  "Outlook cluckin' hazy.", // no
+  "What are you, a lost chick? Cluck!", // no
+  "How the cluck do you not know that?", // no
+  "Really? Asking a chicken to decide your fate? *clucks judgmentally*", // no
+  "Peck back later, I'm nesting...", // no
+  "I don’t know, try flapping your wings and ask again?", // no
+  "The answer is a big ol' yes! *flaps happily*", // yes
+  "Yes... wait, actually... no. Cluck, I’m confused.", // no
+  "Maaaaybe... *chicken waddle*?", // yes
+  "Definitely! *struts confidently*", // yes
+  "It is decidedly so. *struts with pride*", // yes
+  "My reply is a solid *cluck* no.", // no
+  "My sources confirm it's a cluckin' no.\nSource: 🐔 *I made it up* 🐔", // no
+  "As I see it, yes! *pecks approvingly*", // yes
+  "Don’t count on it. *cluck cluck*", // no
+  "Whoa, why do I have to answer this? *fluffs feathers*", // no
+  "Highly unlikely. *chicken stare*", // no
+  "Sure, but with extreme cluckin' caution.", // yes
+  "What kind of stupid question is that?? No! *angry clucks*", // no
+  "Try asking this to a fellow chicken. They probably know better than I do!", // no
+  "Cluck yes! *does a happy chicken dance*", // yes
+  "No way, not even for a big bag of feed.", // no
+  "Yes! *lays egg of approval*", // yes
+  "It's a no, better go scratch somewhere else.", // no
+  "Cluck-tastic! That’s a definite yes.", // yes
+];
+
 fn get_random_response() -> &'static str {
   RESPONSES[rand::random::<usize>() % RESPONSES.len()]
+}
+
+fn get_random_chicken_response() -> &'static str {
+  CHICKEN_RESPONSES[rand::random::<usize>() % CHICKEN_RESPONSES.len()]
 }

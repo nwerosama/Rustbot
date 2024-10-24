@@ -121,11 +121,10 @@ async fn main() {
     &token_path().await.main,
     GatewayIntents::GUILDS
     | GatewayIntents::GUILD_MESSAGES
-    | GatewayIntents::DIRECT_MESSAGES
     | GatewayIntents::MESSAGE_CONTENT
   )
   .framework(framework)
-  .data(Arc::new(RustbotData {}))  
+  .data(Arc::new(RustbotData {}))
   .activity(ActivityData::custom("nep nep!"))
   .await.expect("Error creating client");
 

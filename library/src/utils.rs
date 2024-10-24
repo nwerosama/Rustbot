@@ -53,18 +53,18 @@ pub fn format_duration(secs: u64) -> String {
   let minutes = (secs % 3600) / 60;
   let seconds = secs % 60;
 
-  let mut formatted_string = String::new();
-  match (days, hours, minutes, seconds) {
-    (d, _, _, _) if d > 0 => formatted_string.push_str(&format!("{d}d, ")),
-    (_, h, _, _) if h > 0 => formatted_string.push_str(&format!("{h}h, ")),
-    (_, _, m, _) if m > 0 => formatted_string.push_str(&format!("{m}m, ")),
-    (_, _, _, s) if s > 0 => formatted_string.push_str(&format!("{s}s")),
-    _ => {}
-  }
+  let components = [
+    (days, "d"),
+    (hours, "h"),
+    (minutes, "m"),
+    (seconds, "s"),
+  ];
 
-  if formatted_string.ends_with(", ") {
-    formatted_string.truncate(formatted_string.len() - 2);
-  }
+  let formatted_string: Vec<String> = components
+  .iter()
+  .filter(|&&(value, _)| value > 0)
+  .map(|&(value, suffix)| format!("{}{}", value, suffix))
+  .collect();
 
-  formatted_string
+  formatted_string.join(", ")
 }
