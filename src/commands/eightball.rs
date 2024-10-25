@@ -93,29 +93,29 @@ const RESPONSES: [&str; 30] = [
 const CHICKEN_RESPONSES: [&str; 35] = [
   "Cluck cluck... Reply hazy, try pecking Google.", // no
   "Meh... Figure it out yourself, or scratch around a bit.", // no
-  "I don’t know... what do you think? *pecks at ground*", // no
+  "I don't know... what do you think? *pecks at ground*", // no
   "BAWK! YES!", // yes
   "Cluck... no.", // no
   "It is decidedly so! *flaps wings*", // yes
   "Signs point to... maybe... hold on, let me fluff my feathers... depends on whether you'd get to know your Magic Chicken a bit better.", // no
   "Signs point to... ~~yes~~ cluck no.", // no
-  "Why do you want to know? It’s a big cluckin’ yes!", // yes
+  "Why do you want to know? It's a big cluckin' yes!", // yes
   "Outlook not so clucking good.", // no
   "Outlook cluckin' hazy.", // no
   "What are you, a lost chick? Cluck!", // no
   "How the cluck do you not know that?", // no
   "Really? Asking a chicken to decide your fate? *clucks judgmentally*", // no
   "Peck back later, I'm nesting...", // no
-  "I don’t know, try flapping your wings and ask again?", // no
+  "I don't know, try flapping your wings and ask again?", // no
   "The answer is a big ol' yes! *flaps happily*", // yes
-  "Yes... wait, actually... no. Cluck, I’m confused.", // no
+  "Yes... wait, actually... no. Cluck, I'm confused.", // no
   "Maaaaybe... *chicken waddle*?", // yes
   "Definitely! *struts confidently*", // yes
   "It is decidedly so. *struts with pride*", // yes
   "My reply is a solid *cluck* no.", // no
   "My sources confirm it's a cluckin' no.\nSource: 🐔 *I made it up* 🐔", // no
   "As I see it, yes! *pecks approvingly*", // yes
-  "Don’t count on it. *cluck cluck*", // no
+  "Don't count on it. *cluck cluck*", // no
   "Whoa, why do I have to answer this? *fluffs feathers*", // no
   "Highly unlikely. *chicken stare*", // no
   "Sure, but with extreme cluckin' caution.", // yes
@@ -125,7 +125,7 @@ const CHICKEN_RESPONSES: [&str; 35] = [
   "No way, not even for a big bag of feed.", // no
   "Yes! *lays egg of approval*", // yes
   "It's a no, better go scratch somewhere else.", // no
-  "Cluck-tastic! That’s a definite yes.", // yes
+  "Cluck-tastic! That's a definite yes.", // yes
 ];
 
 fn get_random_response() -> &'static str {

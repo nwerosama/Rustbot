@@ -8,6 +8,7 @@ use poise::{
 
 /// Developer commands
 #[poise::command(
+  slash_command,
   prefix_command,
   owners_only,
   subcommands("deploy", "servers", "shards", "echo")
