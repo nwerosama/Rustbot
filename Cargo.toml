@@ -16,7 +16,7 @@ cargo_toml = "0.20.5"
 poise = "0.6.1"
 regex = "1.11.0"
 serde = "1.0.210"
-tokio = { version = "1.40.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.40.0", features = ["macros", "signal", "rt-multi-thread"] }
 reqwest = { version = "0.12.8", features = ["native-tls-vendored"] }
 
 [dependencies]

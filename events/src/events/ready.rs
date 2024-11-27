@@ -1,11 +1,11 @@
-use crate::PoiseFwCtx;
 use super::{
   EventProcessor,
   RUSTBOT_EVENT
 };
 
 use rustbot_lib::{
-  RustbotError,
+  RustbotFwCtx,
+  RustbotResult,
   utils::{
     BOT_VERSION,
     GIT_COMMIT_HASH,
@@ -15,7 +15,7 @@ use rustbot_lib::{
 };
 use std::sync::atomic::{
   AtomicBool,
-  Ordering
+  Ordering::Relaxed
 };
 use poise::serenity_prelude::{
   Ready,
@@ -29,8 +29,8 @@ static READY_ONCE: AtomicBool = AtomicBool::new(false);
 
 async fn ready_once(
   ready: &Ready,
-  framework: PoiseFwCtx<'_>
-) -> Result<(), RustbotError> {
+  framework: RustbotFwCtx<'_>
+) -> RustbotResult<()> {
   #[cfg(not(feature = "production"))]
   {
     println!("{RUSTBOT_EVENT}[Ready:Notice:S{}]: Detected a non-production environment!", framework.serenity_context.shard_id);
@@ -57,8 +57,8 @@ impl EventProcessor<'_> {
   pub async fn on_ready(
     &self,
     data_about_bot: &Ready
-  ) -> Result<(), RustbotError> {
-    if !READY_ONCE.swap(true, Ordering::Relaxed) {
+  ) -> RustbotResult<()> {
+    if !READY_ONCE.swap(true, Relaxed) {
       ready_once(data_about_bot, self.framework).await.expect("Failed to call ready_once method");
     }
 

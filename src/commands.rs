@@ -8,8 +8,6 @@ pub use eightball::eightball;
 pub use ping::ping;
 pub use uptime::uptime;
 
-type PoiseContext<'a> = rustbot_lib::RustbotCtx<'a>;
-
 macro_rules! collect {
   () => {
     vec![

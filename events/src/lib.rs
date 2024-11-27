@@ -1,19 +1,10 @@
 pub mod events;
 
 // use serde_json::json;
-use rustbot_lib::{
-  RustbotData,
-  RustbotError
-};
-use poise::{
-  FrameworkContext,
-  /* serenity_prelude::{
-    Context,
-    WebhookId
-  } */
-};
-
-type PoiseFwCtx<'a> = FrameworkContext<'a, RustbotData, RustbotError>;
+/* use poise::serenity_prelude::{
+  Context,
+  WebhookId
+}; */
 
 /* async fn hook_logger(
   ctx: &Context,

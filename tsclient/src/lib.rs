@@ -1,5 +1,9 @@
-use std::sync::LazyLock;
+use poise::serenity_prelude::Token;
 use tokio::sync::Mutex;
+use std::{
+  str::FromStr,
+  sync::LazyLock
+};
 use tokenservice_client::{
   TokenService,
   TokenServiceApi
@@ -32,4 +36,9 @@ static TSCLIENT: LazyLock<Mutex<TSClient>> = LazyLock::new(|| Mutex::new(TSClien
 
 pub async fn token_path() -> TokenServiceApi {
   TSCLIENT.lock().await.get().await.unwrap()
+}
+
+pub async fn discord_token() -> Token {
+  Token::from_str(&token_path().await.main)
+  .expect("Serenity couldn't parse the bot token!")
 }

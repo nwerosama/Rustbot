@@ -1,25 +1,22 @@
 mod ready;
 mod shards;
 
+use poise::serenity_prelude::FullEvent;
 use rustbot_lib::{
-  RustbotError,
-  RustbotData
-};
-use poise::{
-  FrameworkContext,
-  serenity_prelude::FullEvent
+  RustbotFwCtx,
+  RustbotResult
 };
 
 pub const RUSTBOT_EVENT: &str = "RustbotEvent";
 
 struct EventProcessor<'a> {
-  framework: FrameworkContext<'a, RustbotData, RustbotError>
+  framework: RustbotFwCtx<'a>
 }
 
 pub async fn processor(
-  framework: FrameworkContext<'_, RustbotData, RustbotError>,
+  framework: RustbotFwCtx<'_>,
   event: &FullEvent
-) -> Result<(), RustbotError> {
+) -> RustbotResult<()> {
   let processor = EventProcessor { framework };
 
   match event {

@@ -21,7 +21,7 @@ pub fn format_timestamp(timestamp: i64) -> String {
   format!("<t:{timestamp}>\n<t:{timestamp}:R>")
 }
 
-pub fn mention_dev(ctx: super::RustbotCtx<'_>) -> Option<String> {
+pub fn mention_dev(ctx: super::RustbotContext<'_>) -> Option<String> {
   let devs = super::config::BINARY_PROPERTIES.developers.clone();
   let app_owners = ctx.framework().options().owners.clone();
 
@@ -40,7 +40,7 @@ pub fn mention_dev(ctx: super::RustbotCtx<'_>) -> Option<String> {
   }
 }
 
-pub fn get_guild_name(ctx: super::RustbotCtx<'_>) -> String {
+pub fn get_guild_name(ctx: super::RustbotContext<'_>) -> String {
   match ctx.guild() {
     Some(guild) => guild.name.clone().to_string(),
     None => String::from("DM")
@@ -63,7 +63,7 @@ pub fn format_duration(secs: u64) -> String {
   let formatted_string: Vec<String> = components
   .iter()
   .filter(|&&(value, _)| value > 0)
-  .map(|&(value, suffix)| format!("{}{}", value, suffix))
+  .map(|&(value, suffix)| format!("{value}{suffix}"))
   .collect();
 
   formatted_string.join(", ")

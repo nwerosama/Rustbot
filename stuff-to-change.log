@@ -6,6 +6,6 @@ Only things that are needing to be changed before deploying this template to rea
 - library (rustbot_lib), and its references
 - tsclient (rustbot_tokens), and its references
 
-Search by Rustbot in its usual form (all-caps, pascalcase, and such) to find all the references that need to be changed too.
+Search by Rustbot in its usual form (ALL-CAPS, PascalCase, and such) to find all the references that need to be changed too.
 
 (and delete this file too!)

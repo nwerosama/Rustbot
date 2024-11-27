@@ -1,6 +1,3 @@
-use crate::RustbotError;
-use super::PoiseContext;
-
 use sysinfo::System;
 use uptime_lib::get;
 use std::{
@@ -17,11 +14,15 @@ use std::{
     BufReader
   }
 };
-use rustbot_lib::utils::{
-  BOT_VERSION,
-  GIT_COMMIT_HASH,
-  GIT_COMMIT_BRANCH,
-  format_duration
+use rustbot_lib::{
+  RustbotContext,
+  RustbotResult,
+  utils::{
+    BOT_VERSION,
+    GIT_COMMIT_HASH,
+    GIT_COMMIT_BRANCH,
+    format_duration
+  }
 };
 
 fn get_os_info() -> String {
@@ -63,7 +64,7 @@ fn fmt_mem(bytes: u64) -> String {
 
 /// Retrieve host and bot uptimes
 #[poise::command(slash_command)]
-pub async fn uptime(ctx: PoiseContext<'_>) -> Result<(), RustbotError> {
+pub async fn uptime(ctx: RustbotContext<'_>) -> RustbotResult<()> {
   let bot = ctx.http().get_current_user().await.unwrap();
   let mut sys = System::new_all();
   sys.refresh_all();

@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+poise = { workspace = true }
 tokenservice-client = { version = "0.4.1", registry = "gitea" }
 tokio = { workspace = true }

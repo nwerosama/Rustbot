@@ -1,8 +1,9 @@
 mod commands;
+mod shutdown;
 // https://cdn.toast-server.net/RustFSHiearchy.png
 // Using the new filesystem hierarchy
 
-use rustbot_tokens::token_path;
+use rustbot_tokens::discord_token;
 use poise::serenity_prelude::{
   builder::CreateAllowedMentions,
   ClientBuilder,
@@ -14,7 +15,6 @@ use rustbot_lib::{
     mention_dev,
     get_guild_name
   },
-  RustbotError,
   RustbotData,
   config::BINARY_PROPERTIES
 };
@@ -47,20 +47,19 @@ async fn main() {
         };
 
         println!(
-          "Discord[{}:S{}]: {} ran {}{} {}",
+          "Discord[{}:S{}]: {} ran {prefix}{} {get_guild_channel_name}",
           get_guild_name(ctx),
           ctx.serenity_context().shard_id,
           ctx.author().name,
-          prefix,
           ctx.command().qualified_name,
-          get_guild_channel_name);
+        );
       }),
       prefix_options: poise::PrefixFrameworkOptions {
         prefix,
-        case_insensitive_commands: true,
         ignore_bots: true,
-        execute_self_messages: false,
         mention_as_prefix: false,
+        case_insensitive_commands: true,
+        execute_self_messages: false,
         ..Default::default()
       },
       on_error: |error| Box::pin(async move {
@@ -118,7 +117,7 @@ async fn main() {
     .build();
 
   let mut client = ClientBuilder::new(
-    &token_path().await.main,
+    discord_token().await,
     GatewayIntents::GUILDS
     | GatewayIntents::GUILD_MESSAGES
     | GatewayIntents::MESSAGE_CONTENT
@@ -128,7 +127,14 @@ async fn main() {
   .activity(ActivityData::custom("nep nep!"))
   .await.expect("Error creating client");
 
+  let shard_manager = client.shard_manager.clone();
+
+  tokio::spawn(async move {
+    shutdown::gracefully_shutdown().await;
+    shard_manager.shutdown_all().await;
+  });
+
   if let Err(why) = client.start_autosharded().await {
-    println!("Error starting client: {:#?}", why);
+    println!("Error starting client: {why:#?}");
   }
 }

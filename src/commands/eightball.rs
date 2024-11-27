@@ -1,22 +1,32 @@
-use crate::RustbotError;
-use super::PoiseContext;
-
-use rustbot_lib::config::BINARY_PROPERTIES;
+use rustbot_lib::{
+  RustbotContext,
+  RustbotResult,
+  config::BINARY_PROPERTIES
+};
 use poise::{
   serenity_prelude::UserId,
   builtins::paginate
 };
 
+#[derive(poise::ChoiceParameter)]
+enum ResponseMode {
+  Normal,
+  Chicken
+}
+
 /// Ask the Magic 8-Ball a yes/no question and get an unpredictable answer
 #[poise::command(
   slash_command,
+  install_context = "Guild|User",
+  interaction_context = "Guild|BotDm|PrivateChannel",
   rename = "8ball"
 )]
 pub async fn eightball(
-  ctx: PoiseContext<'_>,
-  #[description = "Your yes/no question"] question: String
-) -> Result<(), RustbotError> {
-  if question.to_ascii_lowercase().contains("rustbot, show list") {
+  ctx: RustbotContext<'_>,
+  #[description = "Your yes/no question"] question: String,
+  #[description = "Response modes"] mode: Option<ResponseMode>
+) -> RustbotResult<()> {
+  if question.to_ascii_lowercase().contains("niko, show list") {
     if ctx.author().id == UserId::new(BINARY_PROPERTIES.developers[0]) {
       let chunks: Vec<String> = RESPONSES.chunks(10).map(|chunk| chunk.join("\n\n")).collect();
       let pages: Vec<&str> = chunks.iter().map(|s| s.as_str()).collect();
@@ -29,7 +39,7 @@ pub async fn eightball(
     }
   }
 
-  if question.to_ascii_lowercase().contains("rustbot, show chicken list") {
+  if question.to_ascii_lowercase().contains("niko, show chicken list") {
     if ctx.author().id == UserId::new(BINARY_PROPERTIES.developers[0]) {
       let chunks: Vec<String> = CHICKEN_RESPONSES.chunks(10).map(|chunk| chunk.join("\n\n")).collect();
       let pages: Vec<&str> = chunks.iter().map(|s| s.as_str()).collect();
@@ -42,10 +52,9 @@ pub async fn eightball(
     }
   }
 
-  let rand_resp = if question.to_ascii_lowercase().contains("chicken") {
-    get_random_chicken_response()
-  } else {
-    get_random_response()
+  let rand_resp = match mode {
+    Some(ResponseMode::Chicken) => get_random_chicken_response(),
+    _ => get_random_response()
   };
 
   ctx.reply(format!("> {question}\n{rand_resp}")).await?;
@@ -53,7 +62,7 @@ pub async fn eightball(
   Ok(())
 }
 
-const RESPONSES: [&str; 30] = [
+const RESPONSES: [&str; 45] = [
   "Reply hazy. Look it up on Google.", // no
   "Meh — Figure it out yourself.", // no
   "I don't know, what do you think?", // no
@@ -88,9 +97,24 @@ const RESPONSES: [&str; 30] = [
   "Sure, but with extreme cautions.", // yes
   "What kind of stupid question is that?? No! I'm not answering that!", // no
   "Try asking this to a chicken. Probably knows it better than I do!", // no
+  "Not in a million years!", // no
+  "As a matter of fact, yes.", // yes
+  "It's a no, better go ask someone else.", // no
+  "In the end, it's not a bad choice.", // yes
+  "Nope, not today.", // no
+  "Cross your fingers, the answer is yes!", // yes
+  "Nope. *shakes head*", // no
+  "The fortune cookie said yes.", // yes
+  "Sorry, the fortune cookie over there said no.", // no
+  "Sorry, not happening.", // no
+  "I'll have to consult my sources... *flips coin*... no.", // no
+  "I'll have to consult the magic 8-ball... *shakes*... no.", // no
+  "I'm not sure to be honest, let's ask your friend. Oh wait...", // no
+  "This question flew over my head, I'll pass.", // no
+  "Oops, the Magic 8-Ball shattered itself when you asked that! I'll take that as a no.", // no
 ];
 
-const CHICKEN_RESPONSES: [&str; 35] = [
+const CHICKEN_RESPONSES: [&str; 54] = [
   "Cluck cluck... Reply hazy, try pecking Google.", // no
   "Meh... Figure it out yourself, or scratch around a bit.", // no
   "I don't know... what do you think? *pecks at ground*", // no
@@ -126,6 +150,25 @@ const CHICKEN_RESPONSES: [&str; 35] = [
   "Yes! *lays egg of approval*", // yes
   "It's a no, better go scratch somewhere else.", // no
   "Cluck-tastic! That's a definite yes.", // yes
+  "Cluck yeah! *struts proudly*", // yes
+  "Nope, not today. *shakes head*", // no
+  "Feathers crossed, the answer is yes!", // yes
+  "Chicken says nope. *tilts head*", // no
+  "Absolutely! *clucks happily*", // yes
+  "Not a chance. *fluffs feathers*", // no
+  "Eggcellent choice! Yes!", // yes
+  "Not in a million clucks!", // no
+  "As a matter of cluck, yes! *clucks approvingly*", // yes
+  "It's a nopity nope, better go ask another chicken.", // no
+  "In the end, it's not a bad cluck", // yes
+  "Nope, not today. *clucks sadly*", // no
+  "Cross your feathers, the answer is yes!", // yes
+  "The fortune cookie said yes. *clucks in agreement*", // yes
+  "Sorry, the fortune cookie over there said no. *clucks in disagreement*", // no
+  "I'll have to consult my sources... *flips corn*... no.", // no
+  "I'll have to consult the magic 8-cluck... *shakes*... no.", // no
+  "I'm not sure to be honest, let's ask your chicken friend. Oh wait...", // no
+  "This question floated over my head, I'll pass. *clucks dismissively*", // no
 ];
 
 fn get_random_response() -> &'static str {
