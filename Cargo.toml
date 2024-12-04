@@ -27,7 +27,7 @@ poise = { workspace = true }
 rand = "0.8.5"
 reqwest = { workspace = true }
 serde = { workspace = true }
-sysinfo = "0.32.0"
+sysinfo = "0.33.0"
 time = "0.3.36"
 tokio = { workspace = true }
 uptime_lib = "0.3.1"
