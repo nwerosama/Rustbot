@@ -12,7 +12,7 @@ members = [
 ]
 
 [workspace.dependencies]
-cargo_toml = "0.20.5"
+cargo_toml = "0.21.0"
 poise = "0.6.1"
 regex = "1.11.0"
 serde = "1.0.210"
