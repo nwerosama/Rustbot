@@ -1463,15 +1463,23 @@ name = "rustbot"
 version = "0.1.0"
 dependencies = [
  "poise",
- "rand",
- "reqwest",
+ "rustbot_cmds",
  "rustbot_events",
  "rustbot_lib",
  "rustbot_tokens",
+ "tokio",
+]
+
+[[package]]
+name = "rustbot_cmds"
+version = "0.1.0"
+dependencies = [
+ "poise",
+ "rand",
+ "reqwest",
+ "rustbot_lib",
  "serde",
  "sysinfo",
- "time",
- "tokio",
  "uptime_lib",
 ]
 
@@ -1492,7 +1500,7 @@ dependencies = [
 
 [[package]]
 name = "rustbot_lib"
-version = "0.1.19"
+version = "0.1.0"
 dependencies = [
  "cargo_toml",
  "poise",

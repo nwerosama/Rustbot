@@ -1,6 +1,8 @@
-use poise::serenity_prelude::UserId;
-use cargo_toml::Manifest;
-use std::sync::LazyLock;
+use {
+  cargo_toml::Manifest,
+  poise::serenity_prelude::UserId,
+  std::sync::LazyLock
+};
 
 #[cfg(feature = "production")]
 pub static GIT_COMMIT_HASH: &str = env!("GIT_COMMIT_HASH");
@@ -17,9 +19,7 @@ pub static BOT_VERSION: LazyLock<String> = LazyLock::new(|| {
     .unwrap()
 });
 
-pub fn format_timestamp(timestamp: i64) -> String {
-  format!("<t:{timestamp}>\n<t:{timestamp}:R>")
-}
+pub fn format_timestamp(timestamp: i64) -> String { format!("<t:{timestamp}>\n<t:{timestamp}:R>") }
 
 pub fn mention_dev(ctx: super::RustbotContext<'_>) -> Option<String> {
   let devs = super::config::BINARY_PROPERTIES.developers.clone();
@@ -53,18 +53,13 @@ pub fn format_duration(secs: u64) -> String {
   let minutes = (secs % 3600) / 60;
   let seconds = secs % 60;
 
-  let components = [
-    (days, "d"),
-    (hours, "h"),
-    (minutes, "m"),
-    (seconds, "s"),
-  ];
+  let components = [(days, "d"), (hours, "h"), (minutes, "m"), (seconds, "s")];
 
   let formatted_string: Vec<String> = components
-  .iter()
-  .filter(|&&(value, _)| value > 0)
-  .map(|&(value, suffix)| format!("{value}{suffix}"))
-  .collect();
+    .iter()
+    .filter(|&&(value, _)| value > 0)
+    .map(|&(value, suffix)| format!("{value}{suffix}"))
+    .collect();
 
   formatted_string.join(", ")
 }

@@ -1,23 +1,23 @@
 use crate::RUSTBOT_SCHEDULER;
 
-use tokio::{
-  task,
-  time::{
-    interval,
-    Duration
+use {
+  std::{
+    future::Future,
+    sync::Arc
+  },
+  tokio::{
+    task,
+    time::{
+      interval,
+      Duration
+    }
   }
-};
-use std::{
-  sync::Arc,
-  future::Future
 };
 
 pub struct Scheduler;
 
 impl Scheduler {
-  pub fn new() -> Arc<Self> {
-    Arc::new(Self)
-  }
+  pub fn new() -> Arc<Self> { Arc::new(Self) }
 
   pub async fn spawn_job<F, E>(
     &self,

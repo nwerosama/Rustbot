@@ -1,20 +1,20 @@
-use poise::serenity_prelude::Token;
-use tokio::sync::Mutex;
-use std::{
-  str::FromStr,
-  sync::LazyLock
-};
-use tokenservice_client::{
-  TokenService,
-  TokenServiceApi
+use {
+  poise::serenity_prelude::Token,
+  std::{
+    str::FromStr,
+    sync::LazyLock
+  },
+  tokenservice_client::{
+    TokenService,
+    TokenServiceApi
+  },
+  tokio::sync::Mutex
 };
 
 pub struct TSClient(TokenService);
 
 impl Default for TSClient {
-  fn default() -> Self {
-    Self::new()
-  }
+  fn default() -> Self { Self::new() }
 }
 
 impl TSClient {
@@ -34,11 +34,6 @@ impl TSClient {
 
 static TSCLIENT: LazyLock<Mutex<TSClient>> = LazyLock::new(|| Mutex::new(TSClient::new()));
 
-pub async fn token_path() -> TokenServiceApi {
-  TSCLIENT.lock().await.get().await.unwrap()
-}
+pub async fn token_path() -> TokenServiceApi { TSCLIENT.lock().await.get().await.unwrap() }
 
-pub async fn discord_token() -> Token {
-  Token::from_str(&token_path().await.main)
-  .expect("Serenity couldn't parse the bot token!")
-}
+pub async fn discord_token() -> Token { Token::from_str(&token_path().await.main).expect("Serenity couldn't parse the bot token!") }

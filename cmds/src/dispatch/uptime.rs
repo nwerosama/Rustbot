@@ -1,28 +1,31 @@
-use sysinfo::System;
-use uptime_lib::get;
-use std::{
-  env::var,
-  fs::File,
-  path::Path,
-  time::{
-    Duration,
-    SystemTime,
-    UNIX_EPOCH
+use {
+  rustbot_lib::{
+    RustbotContext,
+    RustbotResult,
+    config::BINARY_PROPERTIES,
+    utils::{
+      BOT_VERSION,
+      GIT_COMMIT_BRANCH,
+      GIT_COMMIT_HASH,
+      format_duration
+    }
   },
-  io::{
-    BufRead,
-    BufReader
-  }
-};
-use rustbot_lib::{
-  RustbotContext,
-  RustbotResult,
-  utils::{
-    BOT_VERSION,
-    GIT_COMMIT_HASH,
-    GIT_COMMIT_BRANCH,
-    format_duration
-  }
+  std::{
+    env::var,
+    fs::File,
+    io::{
+      BufRead,
+      BufReader
+    },
+    path::Path,
+    time::{
+      Duration,
+      SystemTime,
+      UNIX_EPOCH
+    }
+  },
+  sysinfo::System,
+  uptime_lib::get
 };
 
 fn get_os_info() -> String {
@@ -33,13 +36,11 @@ fn get_os_info() -> String {
   if let Ok(file) = File::open(path) {
     let reader = BufReader::new(file);
     let set_value = |s: String| s.split('=').nth(1).unwrap_or_default().trim_matches('"').to_string();
-    reader.lines().map_while(Result::ok).for_each(|line| {
-      match line {
-        l if l.starts_with("NAME=") => name = set_value(l),
-        l if l.starts_with("VERSION=") => version = set_value(l),
-        l if l.starts_with("VERSION_ID=") => version = set_value(l),
-        _ => {}
-      }
+    reader.lines().map_while(Result::ok).for_each(|line| match line {
+      l if l.starts_with("NAME=") => name = set_value(l),
+      l if l.starts_with("VERSION=") => version = set_value(l),
+      l if l.starts_with("VERSION_ID=") => version = set_value(l),
+      _ => {}
     });
   }
 
@@ -95,16 +96,21 @@ pub async fn uptime(ctx: RustbotContext<'_>) -> RustbotResult<()> {
   }
 
   // Fetch the node hostname from envvar
-  let docker_node = match var("DOCKER_HOSTNAME") {
-    Ok(h) => h.to_string(),
-    Err(_) => "DOCKER_HOSTNAME is empty!".to_string()
+  let node_hostname = if BINARY_PROPERTIES.env.contains("prod") {
+    match var("DOCKER_HOSTNAME") {
+      Ok(h) => h.to_string(),
+      Err(_) => "DOCKER_HOSTNAME is empty!".to_string()
+    }
+  } else {
+    let hostname = std::process::Command::new("hostname").output().unwrap().stdout;
+    String::from_utf8(hostname).unwrap().trim().to_string()
   };
 
   let stat_msg = [
     format!("**{} v{}** `{GIT_COMMIT_HASH}:{GIT_COMMIT_BRANCH}`", bot.name, *BOT_VERSION),
     format!(">>> System: `{}`", format_duration(sys_uptime)),
     format!("Process: `{}`", format_duration(proc_uptime)),
-    format!("Node: `{docker_node}`"),
+    format!("Node: `{node_hostname}`"),
     format!("CPU: `{}`", cpu[0].brand()),
     format!("RAM: `{pram}` (`{sram}/{sram_total}`)"),
     format!("OS: `{}`", get_os_info())

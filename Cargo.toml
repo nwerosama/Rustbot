@@ -5,6 +5,7 @@ edition = "2021"
 
 [workspace]
 members = [
+  "cmds",
   "events",
   "jobs",
   "library",
@@ -16,21 +17,21 @@ cargo_toml = "0.21.0"
 poise = "0.6.1"
 regex = "1.11.0"
 serde = "1.0.210"
-tokio = { version = "1.40.0", features = ["macros", "signal", "rt-multi-thread"] }
-reqwest = { version = "0.12.8", features = ["native-tls-vendored"] }
-
-[dependencies]
-rustbot_events = { path = "events" }
-rustbot_lib = { path = "library" }
-rustbot_tokens = { path = "tsclient" }
-poise = { workspace = true }
 rand = "0.8.5"
-reqwest = { workspace = true }
-serde = { workspace = true }
 sysinfo = "0.33.0"
 time = "0.3.36"
-tokio = { workspace = true }
 uptime_lib = "0.3.1"
+tokio = { version = "1.40.0", features = ["macros", "signal", "rt-multi-thread"] }
+reqwest = { version = "0.12.8", features = ["native-tls-vendored"] }
+rustbot_lib = { path = "library" }
+
+[dependencies]
+poise = { workspace = true }
+rustbot_cmds = { path = "cmds" }
+rustbot_events = { path = "events" }
+rustbot_lib = { workspace = true }
+rustbot_tokens = { path = "tsclient" }
+tokio = { workspace = true }
 
 [patch.crates-io]
 poise = { git = "https://github.com/serenity-rs/poise", branch = "serenity-next" }

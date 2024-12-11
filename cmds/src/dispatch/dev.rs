@@ -1,13 +1,15 @@
-use rustbot_lib::{
-  RustbotContext,
-  RustbotResult
-};
-use poise::{
-  CreateReply,
-  serenity_prelude::{
-    ChannelId,
-    ShardId,
-    ShardRunnerInfo
+use {
+  poise::{
+    CreateReply,
+    serenity_prelude::{
+      ChannelId,
+      ShardId,
+      ShardRunnerInfo
+    }
+  },
+  rustbot_lib::{
+    RustbotContext,
+    RustbotResult
   }
 };
 
@@ -44,9 +46,7 @@ async fn format_shard_info(
   interaction_context = "Guild|BotDm|PrivateChannel",
   subcommands("deploy", "servers", "shards", "echo")
 )]
-pub async fn dev(_: RustbotContext<'_>) -> RustbotResult<()> {
-  Ok(())
-}
+pub async fn dev(_: RustbotContext<'_>) -> RustbotResult<()> { Ok(()) }
 
 /// Deploy commands to this guild or globally
 #[poise::command(prefix_command)]
@@ -90,7 +90,8 @@ async fn echo(
   ctx: RustbotContext<'_>,
   #[description = "Message to be echoed as a bot"] message: String,
   #[description = "Channel to send this to"]
-  #[channel_types("Text", "PublicThread", "PrivateThread")] channel: Option<ChannelId>
+  #[channel_types("Text", "PublicThread", "PrivateThread")]
+  channel: Option<ChannelId>
 ) -> RustbotResult<()> {
   ctx.defer_ephemeral().await?;
 
@@ -101,18 +102,10 @@ async fn echo(
 
   match ChannelId::new(channel.get()).say(ctx.http(), message).await {
     Ok(_) => {
-      ctx.send(
-        CreateReply::new()
-          .content("Sent!")
-          .ephemeral(true)
-      ).await?;
+      ctx.send(CreateReply::new().content("Sent!").ephemeral(true)).await?;
     },
     Err(y) => {
-      ctx.send(
-        CreateReply::new()
-          .content(format!("Failed... `{y}`"))
-          .ephemeral(true)
-      ).await?;
+      ctx.send(CreateReply::new().content(format!("Failed... `{y}`")).ephemeral(true)).await?;
       return Ok(());
     }
   }

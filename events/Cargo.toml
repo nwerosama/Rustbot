@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rustbot_lib = { path = "../library" }
 poise = { workspace = true }
+rustbot_lib = { workspace = true }
 
 [features]
 production = ["rustbot_lib/production"]

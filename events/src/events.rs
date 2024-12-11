@@ -1,10 +1,12 @@
 mod ready;
 mod shards;
 
-use poise::serenity_prelude::FullEvent;
-use rustbot_lib::{
-  RustbotFwCtx,
-  RustbotResult
+use {
+  poise::serenity_prelude::FullEvent,
+  rustbot_lib::{
+    RustbotFwCtx,
+    RustbotResult
+  }
 };
 
 pub const RUSTBOT_EVENT: &str = "RustbotEvent";

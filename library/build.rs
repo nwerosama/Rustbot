@@ -23,15 +23,4 @@ fn main() {
       println!("cargo:rustc-env=GIT_COMMIT_BRANCH=not_found");
     }
   }
-
-  {
-    let hostname = std::process::Command::new("hostname")
-      .output()
-      .expect("Command execution failed: hostname");
-
-    if hostname.status.success() {
-      let hostname = String::from_utf8(hostname.stdout).expect("Invalid UTF-8 sequence").trim().to_string();
-      println!("cargo:rustc-env=DOCKER_HOSTNAME={}", &hostname);
-    }
-  }
 }
