@@ -1,7 +1,7 @@
 [package]
 name = "rustbot"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [workspace]
 members = [
@@ -15,14 +15,14 @@ members = [
 [workspace.dependencies]
 cargo_toml = "0.21.0"
 poise = "0.6.1"
-regex = "1.11.0"
-serde = "1.0.210"
+regex = "1.11.1"
+serde = "1.0.216"
 rand = "0.8.5"
 sysinfo = "0.33.0"
-time = "0.3.36"
+time = "0.3.37"
 uptime_lib = "0.3.1"
-tokio = { version = "1.40.0", features = ["macros", "signal", "rt-multi-thread"] }
-reqwest = { version = "0.12.8", features = ["native-tls-vendored"] }
+tokio = { version = "1.42.0", features = ["macros", "signal", "rt-multi-thread"] }
+reqwest = { version = "0.12.9", features = ["native-tls-vendored"] }
 rustbot_lib = { path = "library" }
 
 [dependencies]

@@ -1707,7 +1707,7 @@ dependencies = [
 [[package]]
 name = "serenity"
 version = "0.12.4"
-source = "git+https://github.com/serenity-rs/serenity?branch=next#fbeda94a0dfd029d2281e636537b067764a01ac9"
+source = "git+https://github.com/serenity-rs/serenity?branch=next#6286c184a0f7030573ae49377c4b0f6d5c08a579"
 dependencies = [
  "aformat",
  "arrayvec",
@@ -2048,7 +2048,7 @@ dependencies = [
 [[package]]
 name = "tokenservice-client"
 version = "0.4.2"
-source = "sparse+https://git.toast-server.net/api/packages/toast/cargo/"
+source = "registry+https://git.toast-server.net/toast/_cargo-index"
 checksum = "6c6f3da21601ea1072262024198c099bea1688714f13b13c36cc7f4a88c6b203"
 dependencies = [
  "reqwest",
