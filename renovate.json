@@ -3,14 +3,16 @@
   "extends": [
     "config:recommended",
     "default:automergeDigest",
-    "default:automergeBranchPush",
+    ":automergeBranch",
     "helpers:pinGitHubActionDigests"
   ],
   "commitBody": "PR created by Renovate Bot.",
   "timezone": "Australia/Sydney",
   "vulnerabilityAlerts": {
     "groupName": "renovate-security",
-    "schedule": ["before 11pm every day"],
+    "schedule": [
+      "before 11pm"
+    ],
     "dependencyDashboardApproval": false,
     "minimumReleaseAge": "1h",
     "rangeStrategy": "update-lockfile",
@@ -25,11 +27,17 @@
   "automerge": true,
   "automergeType": "pr",
   "automergeStrategy": "squash",
-  "automergeSchedule": ["at any time"],
-  "lockFileMaintenance": { "enabled": false },
+  "automergeSchedule": [
+    "at any time"
+  ],
+  "lockFileMaintenance": {
+    "enabled": false
+  },
   "packageRules": [
     {
-      "matchManagers": ["cargo"],
+      "matchManagers": [
+        "cargo"
+      ],
       "enabled": true
     }
   ]
