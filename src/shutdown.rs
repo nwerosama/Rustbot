@@ -1,8 +1,8 @@
 use tokio::{
   select,
   signal::unix::{
-    signal,
-    SignalKind
+    SignalKind,
+    signal
   }
 };
 

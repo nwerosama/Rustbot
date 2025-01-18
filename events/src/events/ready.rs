@@ -12,14 +12,14 @@ use {
     Ready
   },
   rustbot_lib::{
+    RustbotFwCtx,
+    RustbotResult,
     config::BINARY_PROPERTIES,
     utils::{
       BOT_VERSION,
       GIT_COMMIT_BRANCH,
       GIT_COMMIT_HASH
-    },
-    RustbotFwCtx,
-    RustbotResult
+    }
   },
   std::sync::atomic::{
     AtomicBool,

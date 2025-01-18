@@ -8,8 +8,8 @@ use {
   tokio::{
     task,
     time::{
-      interval,
-      Duration
+      Duration,
+      interval
     }
   }
 };

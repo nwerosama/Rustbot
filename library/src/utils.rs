@@ -33,11 +33,7 @@ pub fn mention_dev(ctx: super::RustbotContext<'_>) -> Option<String> {
     }
   }
 
-  if mentions.is_empty() {
-    None
-  } else {
-    Some(mentions.join(", "))
-  }
+  if mentions.is_empty() { None } else { Some(mentions.join(", ")) }
 }
 
 pub fn get_guild_name(ctx: super::RustbotContext<'_>) -> String {

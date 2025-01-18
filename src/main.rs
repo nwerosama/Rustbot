@@ -1,23 +1,21 @@
+mod errors;
 mod shutdown;
 // https://cdn.toast-server.net/RustFSHiearchy.png
 // Using the new filesystem hierarchy
 
 use {
   poise::serenity_prelude::{
-    builder::CreateAllowedMentions,
     ActivityData,
     ClientBuilder,
-    GatewayIntents
+    GatewayIntents,
+    builder::CreateAllowedMentions
   },
   rustbot_cmds::collect,
   rustbot_events::events::processor,
   rustbot_lib::{
+    RustbotData,
     config::BINARY_PROPERTIES,
-    utils::{
-      get_guild_name,
-      mention_dev
-    },
-    RustbotData
+    utils::get_guild_name
   },
   rustbot_tokens::discord_token,
   std::{
@@ -65,69 +63,7 @@ async fn main() {
         execute_self_messages: false,
         ..Default::default()
       },
-      on_error: |error| {
-        Box::pin(async move {
-          match error {
-            poise::FrameworkError::Command { error, ctx, .. } => {
-              println!("PoiseCommandError({}): {}", ctx.command().qualified_name, error);
-              ctx
-                .reply(format!(
-                  "Encountered an error during command execution, ask {} to check console for more details!",
-                  mention_dev(ctx).unwrap_or_default()
-                ))
-                .await
-                .expect("Error sending message");
-            },
-            poise::FrameworkError::EventHandler { error, event, .. } => println!("PoiseEventHandlerError({}): {}", event.snake_case_name(), error),
-            poise::FrameworkError::NotAnOwner { ctx, .. } => {
-              println!(
-                "PoiseNotAnOwner: {} tried to execute a developer-level command ({})",
-                ctx.author().name,
-                ctx.command().qualified_name
-              );
-              ctx
-                .reply("Whoa, you discovered a hidden command! Too bad, I can't allow you to execute it as you're not my creator.")
-                .await
-                .expect("Error sending message");
-            },
-            poise::FrameworkError::UnknownInteraction { interaction, .. } => println!(
-              "PoiseUnknownInteractionError: {} tried to execute an unknown interaction ({})",
-              interaction.user.name, interaction.data.name
-            ),
-            poise::FrameworkError::UnknownCommand { msg, .. } => println!(
-              "PoiseUnknownCommandError: {} tried to execute an unknown command ({})",
-              msg.author.name, msg.content
-            ),
-            poise::FrameworkError::ArgumentParse { ctx, error, .. } => {
-              println!("PoiseArgumentParseError: {}", error);
-              ctx
-                .reply(format!("Error parsing argument(s): {error}"))
-                .await
-                .expect("Error sending message");
-            },
-            poise::FrameworkError::CommandPanic { ctx, payload, .. } => {
-              if let Some(payload) = payload.clone() {
-                println!("PoiseCommandPanic: {payload}");
-                ctx
-                  .reply(format!(
-                    "The command panicked, please tell my developer about this!\n**Error:**```\n{payload}\n```"
-                  ))
-                  .await
-                  .expect("Error sending message");
-              } else {
-                println!("PoiseCommandPanic: No payload provided");
-                let uh_oh = [
-                  "Well, this is concerning... Hopefully you notified my developer about this!",
-                  "The command panicked, but didn't leave any trace behind... Suspicious!"
-                ]
-                .join("\n");
-                ctx.reply(uh_oh).await.expect("Error sending message");
-              }
-            },
-            other => println!("PoiseOtherError: {other}")
-          }
-        })
-      },
+      on_error: |error| Box::pin(async move { errors::fw_errors(error).await }),
       allowed_mentions: Some(CreateAllowedMentions::default().empty_users()),
       initialize_owners: true,
       skip_checks_for_owners: true,

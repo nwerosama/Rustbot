@@ -20,7 +20,7 @@ impl ConfigMeta {
       embed_color:  0xF1D63C,
       rustbot_logs: 1311282815601741844,
       developers:   vec![
-        190407856527376384, // toast.ts
+        190407856527376384, // nwero.sama
       ]
     }
   }
