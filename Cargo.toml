@@ -16,13 +16,13 @@ members = [
 cargo_toml = "0.21.0"
 poise = "0.6.1"
 regex = "1.11.1"
-serde = "1.0.216"
+serde = "1.0.217"
 rand = "0.8.5"
-sysinfo = "0.33.0"
+sysinfo = "0.33.1"
 time = "0.3.37"
 uptime_lib = "0.3.1"
-tokio = { version = "1.42.0", features = ["macros", "signal", "rt-multi-thread"] }
-reqwest = { version = "0.12.9", features = ["native-tls-vendored"] }
+tokio = { version = "1.43.0", features = ["macros", "signal", "rt-multi-thread"] }
+reqwest = { version = "0.12.12", features = ["native-tls-vendored"] }
 rustbot_lib = { path = "library" }
 
 [dependencies]
