@@ -17,6 +17,7 @@ use {
     config::BINARY_PROPERTIES,
     utils::get_guild_name
   },
+  rustbot_tasks::spawn_task,
   rustbot_tokens::discord_token,
   std::{
     borrow::Cow,
@@ -26,11 +27,9 @@ use {
 
 #[tokio::main]
 async fn main() {
-  let prefix = if BINARY_PROPERTIES.env.contains("prod") {
-    Some(Cow::Borrowed("pg."))
-  } else {
-    Some(Cow::Borrowed("pg!"))
-  };
+  let prefix = Some(Cow::Borrowed(if BINARY_PROPERTIES.env.contains("prod") { "pg." } else { "pg!" }));
+
+  let data = Arc::new(RustbotData {});
 
   let framework = poise::Framework::builder()
     .options(poise::FrameworkOptions {
@@ -41,10 +40,10 @@ async fn main() {
             Some(channel) => format!("in #{}", channel.name.clone()),
             None => String::from("")
           };
-          let prefix = match ctx.command().prefix_action {
-            Some(_) => ctx.framework().options.prefix_options.prefix.as_ref().unwrap(),
-            None => "/"
-          };
+          let prefix = ctx
+            .command()
+            .prefix_action
+            .map_or("/", |_| ctx.framework().options.prefix_options.prefix.as_ref().unwrap());
 
           println!(
             "Discord[{}:S{}]: {} ran {prefix}{} {get_guild_channel_name}",
@@ -77,10 +76,13 @@ async fn main() {
     GatewayIntents::GUILDS | GatewayIntents::GUILD_MESSAGES | GatewayIntents::MESSAGE_CONTENT
   )
   .framework(framework)
-  .data(Arc::new(RustbotData {}))
+  .data(Arc::clone(&data))
   .activity(ActivityData::custom("nep nep!"))
   .await
   .expect("Error creating client");
+
+  spawn_task(example_task::ExampleTask, Arc::clone(&data)).await;
+  spawn_task(example_task2::ExampleTask2, Arc::clone(&data)).await;
 
   let shard_manager = client.shard_manager.clone();
 
@@ -91,5 +93,67 @@ async fn main() {
 
   if let Err(why) = client.start_autosharded().await {
     println!("Error starting client: {why:#?}");
+  }
+}
+
+mod example_task {
+  use {
+    poise::serenity_prelude::async_trait,
+    rustbot_lib::{
+      RustbotData,
+      RustbotResult
+    },
+    rustbot_tasks::TaskCoordinator,
+    std::sync::Arc,
+    tokio::time::Duration
+  };
+
+  #[derive(Clone)]
+  pub struct ExampleTask;
+
+  #[async_trait]
+  impl TaskCoordinator for ExampleTask {
+    fn name(&self) -> &'static str { "example_task" }
+
+    fn interval(&self) -> Duration { Duration::from_secs(10) }
+
+    async fn run(
+      &self,
+      _: Arc<RustbotData>
+    ) -> RustbotResult<()> {
+      println!("hello from ExampleTask !");
+      Ok(())
+    }
+  }
+}
+
+mod example_task2 {
+  use {
+    poise::serenity_prelude::async_trait,
+    rustbot_lib::{
+      RustbotData,
+      RustbotResult
+    },
+    rustbot_tasks::TaskCoordinator,
+    std::sync::Arc,
+    tokio::time::Duration
+  };
+
+  #[derive(Clone)]
+  pub struct ExampleTask2;
+
+  #[async_trait]
+  impl TaskCoordinator for ExampleTask2 {
+    fn name(&self) -> &'static str { "example_task2" }
+
+    fn interval(&self) -> Duration { Duration::from_secs(5) }
+
+    async fn run(
+      &self,
+      _: Arc<RustbotData>
+    ) -> RustbotResult<()> {
+      println!("hello from ExampleTask2 !");
+      Ok(())
+    }
   }
 }

@@ -14,13 +14,11 @@ impl EventProcessor<'_> {
     &self,
     total_shards: &NonZero<u16>
   ) -> RustbotResult<()> {
-    let shards = if *total_shards == NonZero::new(1).unwrap() {
-      "shard is"
-    } else {
-      "shards are"
-    };
-    println!("{RUSTBOT_EVENT}[ShardsReady]: {total_shards} {shards} ready!");
-
+    let is_singular = total_shards.get() == 1;
+    println!(
+      "{RUSTBOT_EVENT}[ShardsReady]: {total_shards} {} ready!",
+      if is_singular { "shard is" } else { "shards are" }
+    );
     Ok(())
   }
 
@@ -29,7 +27,6 @@ impl EventProcessor<'_> {
     event: &ShardStageUpdateEvent
   ) -> RustbotResult<()> {
     println!("{RUSTBOT_EVENT}[ShardStageUpdate:S{}]: {event:#?}", event.shard_id);
-
     Ok(())
   }
 }

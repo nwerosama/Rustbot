@@ -1,13 +1,22 @@
 use {
+  bytes::Bytes,
   poise::{
-    builtins::paginate,
-    serenity_prelude::UserId
+    CreateReply,
+    serenity_prelude::{
+      CreateAttachment,
+      UserId
+    }
   },
   rand::random,
   rustbot_lib::{
     RustbotContext,
     RustbotResult,
     config::BINARY_PROPERTIES
+  },
+  std::fmt::{
+    Display,
+    Formatter,
+    Result
   }
 };
 
@@ -16,7 +25,24 @@ enum ResponseMode {
   Normal,
   Chicken,
   #[name = "Chaotic & Unhinged"]
-  Chaotic
+  Chaotic,
+  #[name = "UwU"]
+  Uwu
+}
+
+impl Display for ResponseMode {
+  fn fmt(
+    &self,
+    f: &mut Formatter<'_>
+  ) -> Result {
+    let resp = match self {
+      ResponseMode::Normal => "Normal",
+      ResponseMode::Chicken => "Chicken",
+      ResponseMode::Chaotic => "Chaotic & Unhinged",
+      ResponseMode::Uwu => "UwU"
+    };
+    write!(f, "{resp}")
+  }
 }
 
 /// Ask the Magic 8-Ball a yes/no question and get an unpredictable answer
@@ -31,7 +57,7 @@ pub async fn eightball(
   #[description = "Your yes/no question"] question: String,
   #[description = "Response modes"] mode: Option<ResponseMode>
 ) -> RustbotResult<()> {
-  if question.to_ascii_lowercase().contains("niko, show list") {
+  if question.to_ascii_lowercase().contains("rustbot, show list") {
     show_list(ctx, mode.clone().unwrap_or(ResponseMode::Normal)).await?;
     return Ok(())
   }
@@ -39,6 +65,7 @@ pub async fn eightball(
   let rand_resp = match mode {
     Some(ResponseMode::Chicken) => get_random_chicken_response(),
     Some(ResponseMode::Chaotic) => get_random_chaotic_response(),
+    Some(ResponseMode::Uwu) => get_random_uwu_response(),
     _ => get_random_response()
   };
 
@@ -58,219 +85,377 @@ async fn show_list(
     return Ok(());
   }
 
-  let chunks: Vec<String> = match list_type {
-    ResponseMode::Normal => RESPONSES.chunks(10).map(|chunk| chunk.join("\n\n")).collect(),
-    ResponseMode::Chicken => CHICKEN_RESPONSES.chunks(10).map(|chunk| chunk.join("\n\n")).collect(),
-    ResponseMode::Chaotic => CHAOTIC_RESPONSES.chunks(10).map(|chunk| chunk.join("\n\n")).collect()
+  let selected_responses = match list_type {
+    ResponseMode::Normal => RESPONSES.to_vec(),
+    ResponseMode::Chicken => CHICKEN_RESPONSES.to_vec(),
+    ResponseMode::Chaotic => CHAOTIC_RESPONSES.to_vec(),
+    ResponseMode::Uwu => UWU_RESPONSES.to_vec()
   };
 
-  let pages: Vec<&str> = chunks.iter().map(|s| s.as_str()).collect();
-  paginate(ctx, &pages).await?;
+  let total_yes = selected_responses.iter().filter(|&&(_, yes)| yes).count();
+  let total_no = selected_responses.len() - total_yes;
+  let response_strings: Vec<String> = selected_responses.iter().map(|&(resp, _)| resp.to_string()).collect();
+  let response_mode = format!("Response mode: {list_type}");
+
+  let content = [
+    response_mode.clone(),
+    "Totals:".to_string(),
+    format!(" - Yes: {total_yes}"),
+    format!(" - No: {total_no}"),
+    format!(" - Strings: {}", selected_responses.len()),
+    "-".to_string().repeat(response_mode.len()),
+    response_strings.join("\n")
+  ]
+  .join("\n");
+
+  let filename = match list_type {
+    ResponseMode::Normal => "responses.txt",
+    ResponseMode::Chicken => "chicken_responses.txt",
+    ResponseMode::Chaotic => "chaotic_responses.txt",
+    ResponseMode::Uwu => "uwu_responses.txt"
+  };
+
+  ctx
+    .send(CreateReply::new().attachment(CreateAttachment::bytes(Bytes::from(content), filename)))
+    .await?;
 
   Ok(())
 }
 
-const RESPONSES: [&str; 45] = [
-  "Reply hazy. Look it up on Google.", // no
-  "Meh — Figure it out yourself.",     // no
-  "I don't know, what do you think?",  // no
-  "Yes.",                              // yes
-  "No.",                               // no
-  "It is decidedly so",                // yes
-  "Signs point to... maybe... depends on... hold on, let me get my glasses, this is getting pretty tiny... depends on whether you'd be up to \
-   getting to know your Magic 8-Ball a little better.", // no
-  "Signs point to... ~~yes~~ no.",     // no
-  "Why do you want to know the answer? It's obviously a yes.", // yes
-  "Outlook not so good.",              // no
-  "Outlook hazy.",                     // no
-  "What are you, stupid?",             // no
-  "How the hell do you not know that?", // no
-  "Really? Making a decision based on what the plastic 8-Ball says? Jesus...", // no
-  "Try asking later...",               // no
-  "I don't know, whip out the ouija board and try again?", // no
-  "The answer is yes.",                // yes
-  "Yes, actually no. Wait, nevermind.", // no
-  "Maybeee...",                        // yes
-  "Definitely!",                       // yes
-  "It is decidedly so.",               // yes
-  "My reply is no.",                   // no
-  "My sources confirms that the answer is no.\nSource: :sparkles: *i made it up* :sparkles:", // no
-  "As I see it, yes.",                 // yes
-  "Don't count on it.",                // no
-  "Whoa! Why do I have to answer this?", // no
-  "Highly unlikely.",                  // no
-  "Sure, but with extreme cautions.",  // yes
-  "What kind of stupid question is that?? No! I'm not answering that!", // no
-  "Try asking this to a chicken. Probably knows it better than I do!", // no
-  "Not in a million years!",           // no
-  "As a matter of fact, yes.",         // yes
-  "It's a no, better go ask someone else.", // no
-  "In the end, it's not a bad choice.", // yes
-  "Nope, not today.",                  // no
-  "Cross your fingers, the answer is yes!", // yes
-  "Nope. *shakes head*",               // no
-  "The fortune cookie said yes.",      // yes
-  "Sorry, the fortune cookie over there said no.", // no
-  "Sorry, not happening.",             // no
-  "I'll have to consult my sources... *flips coin*... no.", // no
-  "I'll have to consult the magic 8-ball... *shakes*... no.", // no
-  "I'm not sure to be honest, let's ask your friend. Oh wait...", // no
-  "This question flew over my head, I'll pass.", // no
-  "Oops, the Magic 8-Ball shattered itself when you asked that! I'll take that as a no."  // no
+const RESPONSES: [(&str, bool); 55] = [
+  ("Reply hazy. Look it up on Google.", false),
+  ("Meh — Figure it out yourself.", false),
+  ("I don't know, what do you think?", false),
+  ("Yes.", true),
+  ("No.", false),
+  ("It is decidedly so", true),
+  (
+    "Signs point to... maybe... depends on... hold on, let me get my glasses, this is getting pretty tiny... depends on whether you'd be up to \
+     getting to know your Magic 8-Ball a little better.",
+    false
+  ),
+  ("Signs point to... ~~yes~~ no.", false),
+  ("Why do you want to know the answer? It's obviously a yes.", true),
+  ("Outlook not so good.", false),
+  ("Outlook hazy.", false),
+  ("What are you, stupid?", false),
+  ("How the hell do you not know that?", false),
+  ("Really? Making a decision based on what the plastic 8-Ball says? Jesus...", false),
+  ("Try asking later...", false),
+  ("I don't know, whip out the ouija board and try again?", false),
+  ("The answer is yes.", true),
+  ("Yes, actually no. Wait, nevermind.", false),
+  ("Maybeee...", true),
+  ("Definitely!", true),
+  ("It is decidedly so.", true),
+  ("My reply is no.", false),
+  (
+    "My sources confirms that the answer is no.\nSource: :sparkles: *i made it up* :sparkles;",
+    false
+  ),
+  ("As I see it, yes.", true),
+  ("Don't count on it.", false),
+  ("Whoa! Why do I have to answer this?", false),
+  ("Highly unlikely.", false),
+  ("Sure, but with extreme cautions.", true),
+  ("What kind of stupid question is that?? No! I'm not answering that!", false),
+  ("Try asking this to a chicken. Probably knows it better than I do!", false),
+  ("Not in a million years!", false),
+  ("As a matter of fact, yes.", true),
+  ("It's a no, better go ask someone else.", false),
+  ("In the end, it's not a bad choice.", true),
+  ("Nope, not today.", false),
+  ("Cross your fingers, the answer is yes!", true),
+  ("Nope. *shakes head*", false),
+  ("The fortune cookie said yes.", true),
+  ("Sorry, the fortune cookie over there said no.", false),
+  ("Sorry, not happening.", false),
+  ("I'll have to consult my sources... *flips coin*... no.", false),
+  ("I'll have to consult the magic 8-ball... *shakes*... no.", false),
+  ("I'm not sure to be honest, let's ask your friend. Oh wait...", false),
+  ("This question flew over my head, I'll pass.", false),
+  (
+    "Oops, the Magic 8-Ball shattered itself when you asked that! I'll take that as a no.",
+    false
+  ),
+  ("Absolutely not, but keep trying!", false),
+  ("Yes, in a galaxy far far away!", true),
+  ("Ask yourself and find the answer.", false),
+  ("The stars align for a yes.", true),
+  ("Chances are slim, but possible.", false),
+  ("Without a doubt, the universe agrees.", true),
+  ("Better not tell you now.", false),
+  ("Certainly in your favor.", true),
+  ("Look within for the answer.", false),
+  ("Everything points to yes!", true)
 ];
 
-const CHICKEN_RESPONSES: [&str; 54] = [
-  "Cluck cluck... Reply hazy, try pecking Google.",          // no
-  "Meh... Figure it out yourself, or scratch around a bit.", // no
-  "I don't know... what do you think? *pecks at ground*",    // no
-  "BAWK! YES!",                                              // yes
-  "Cluck... no.",                                            // no
-  "It is decidedly so! *flaps wings*",                       // yes
-  "Signs point to... maybe... hold on, let me fluff my feathers... depends on whether you'd get to know your Magic Chicken a bit better.", // no
-  "Signs point to... ~~yes~~ cluck no.",                     // no
-  "Why do you want to know? It's a big cluckin' yes!",       // yes
-  "Outlook not so clucking good.",                           // no
-  "Outlook cluckin' hazy.",                                  // no
-  "What are you, a lost chick? Cluck!",                      // no
-  "How the cluck do you not know that?",                     // no
-  "Really? Asking a chicken to decide your fate? *clucks judgmentally*", // no
-  "Peck back later, I'm nesting...",                         // no
-  "I don't know, try flapping your wings and ask again?",    // no
-  "The answer is a big ol' yes! *flaps happily*",            // yes
-  "Yes... wait, actually... no. Cluck, I'm confused.",       // no
-  "Maaaaybe... *chicken waddle*?",                           // yes
-  "Definitely! *struts confidently*",                        // yes
-  "It is decidedly so. *struts with pride*",                 // yes
-  "My reply is a solid *cluck* no.",                         // no
-  "My sources confirm it's a cluckin' no.\nSource: 🐔 *I made it up* 🐔", // no
-  "As I see it, yes! *pecks approvingly*",                   // yes
-  "Don't count on it. *cluck cluck*",                        // no
-  "Whoa, why do I have to answer this? *fluffs feathers*",   // no
-  "Highly unlikely. *chicken stare*",                        // no
-  "Sure, but with extreme cluckin' caution.",                // yes
-  "What kind of stupid question is that?? No! *angry clucks*", // no
-  "Try asking this to a fellow chicken. They probably know better than I do!", // no
-  "Cluck yes! *does a happy chicken dance*",                 // yes
-  "No way, not even for a big bag of feed.",                 // no
-  "Yes! *lays egg of approval*",                             // yes
-  "It's a no, better go scratch somewhere else.",            // no
-  "Cluck-tastic! That's a definite yes.",                    // yes
-  "Cluck yeah! *struts proudly*",                            // yes
-  "Nope, not today. *shakes head*",                          // no
-  "Feathers crossed, the answer is yes!",                    // yes
-  "Chicken says nope. *tilts head*",                         // no
-  "Absolutely! *clucks happily*",                            // yes
-  "Not a chance. *fluffs feathers*",                         // no
-  "Eggcellent choice! Yes!",                                 // yes
-  "Not in a million clucks!",                                // no
-  "As a matter of cluck, yes! *clucks approvingly*",         // yes
-  "It's a nopity nope, better go ask another chicken.",      // no
-  "In the end, it's not a bad cluck",                        // yes
-  "Nope, not today. *clucks sadly*",                         // no
-  "Cross your feathers, the answer is yes!",                 // yes
-  "The fortune cookie said yes. *clucks in agreement*",      // yes
-  "Sorry, the fortune cookie over there said no. *clucks in disagreement*", // no
-  "I'll have to consult my sources... *flips corn*... no.",  // no
-  "I'll have to consult the magic 8-cluck... *shakes*... no.", // no
-  "I'm not sure to be honest, let's ask your chicken friend. Oh wait...", // no
-  "This question floated over my head, I'll pass. *clucks dismissively*"  // no
+const CHICKEN_RESPONSES: [(&str, bool); 54] = [
+  ("Cluck cluck... Reply hazy, try pecking Google.", false),
+  ("Meh... Figure it out yourself, or scratch around a bit.", false),
+  ("I don't know... what do you think? *pecks at ground*", false),
+  ("BAWK! YES!", true),
+  ("Cluck... no.", false),
+  ("It is decidedly so! *flaps wings*", true),
+  (
+    "Signs point to... maybe... hold on, let me fluff my feathers... depends on whether you'd get to know your Magic Chicken a bit better.",
+    false
+  ),
+  ("Signs point to... ~~yes~~ cluck no.", false),
+  ("Why do you want to know? It's a big cluckin' yes!", true),
+  ("Outlook not so clucking good.", false),
+  ("Outlook cluckin' hazy.", false),
+  ("What are you, a lost chick? Cluck!", false),
+  ("How the cluck do you not know that?", false),
+  ("Really? Asking a chicken to decide your fate? *clucks judgmentally*", false),
+  ("Peck back later, I'm nesting...", false),
+  ("I don't know, try flapping your wings and ask again?", false),
+  ("The answer is a big ol' yes! *flaps happily*", true),
+  ("Yes... wait, actually... no. Cluck, I'm confused.", false),
+  ("Maaaaybe... *chicken waddle*?", true),
+  ("Definitely! *struts confidently*", true),
+  ("It is decidedly so. *struts with pride*", true),
+  ("My reply is a solid *cluck* no.", false),
+  ("My sources confirm it's a cluckin' no.\nSource: 🐔 *I made it up* 🐔", false),
+  ("As I see it, yes! *pecks approvingly*", true),
+  ("Don't count on it. *cluck cluck*", false),
+  ("Whoa, why do I have to answer this? *fluffs feathers*", false),
+  ("Highly unlikely. *chicken stare*", false),
+  ("Sure, but with extreme cluckin' caution.", true),
+  ("What kind of stupid question is that?? No! *angry clucks*", false),
+  ("Try asking this to a fellow chicken. They probably know better than I do!", false),
+  ("Cluck yes! *does a happy chicken dance*", true),
+  ("No way, not even for a big bag of feed.", false),
+  ("Yes! *lays egg of approval*", true),
+  ("It's a no, better go scratch somewhere else.", false),
+  ("Cluck-tastic! That's a definite yes.", true),
+  ("Cluck yeah! *struts proudly*", true),
+  ("Nope, not today. *shakes head*", false),
+  ("Feathers crossed, the answer is yes!", true),
+  ("Chicken says nope. *tilts head*", false),
+  ("Absolutely! *clucks happily*", true),
+  ("Not a chance. *fluffs feathers*", false),
+  ("Eggcellent choice! Yes!", true),
+  ("Not in a million clucks!", false),
+  ("As a matter of cluck, yes! *clucks approvingly*", true),
+  ("It's a nopity nope, better go ask another chicken.", false),
+  ("In the end, it's not a bad cluck", true),
+  ("Nope, not today. *clucks sadly*", false),
+  ("Cross your feathers, the answer is yes!", true),
+  ("The fortune cookie said yes. *clucks in agreement*", true),
+  ("Sorry, the fortune cookie over there said no. *clucks in disagreement*", false),
+  ("I'll have to consult my sources... *flips corn*... no.", false),
+  ("I'll have to consult the magic 8-cluck... *shakes*... no.", false),
+  ("I'm not sure to be honest, let's ask your chicken friend. Oh wait...", false),
+  ("This question floated over my head, I'll pass. *clucks dismissively*", false)
 ];
 
-const CHAOTIC_RESPONSES: [&str; 90] = [
-  "Oops! The Magic 8-Ball shattered upon hearing your question. Coincidence?", // no
-  "Reply hazy. Ask Google’s evil twin, Froogle.",                              // no
-  "Meh — Consult the ancient texts of Netflix subtitles.",                     // no
-  "I don't know, but your cat probably does.",                                 // no
-  "Yes, but only if you wear a clown wig.",                                    // yes
-  "No. Unless the moon winks at you first.",                                   // no
-  "It is decidedly a resounding honk-honk!",                                   // yes
-  "Signs point to... maybe... or not... or wait... oh look, a squirrel!",      // no
-  "Signs point to... ~~yes~~ pancakes. Definitely pancakes.",                  // no
-  "Why do you want to know? It’s obviously a yes — trust the donut prophecy.", // yes
-  "Outlook not so good. Blame Mercury retrograde or your Wi-Fi.",              // no
-  "Outlook hazy. Consult the nearest fortune-telling hamster.",                // no
-  "What are you, a toaster in disguise?",                                      // no
-  "How the heck do you not know this? Ask a sock puppet!",                     // no
-  "Really? Making life choices based on a magic ball? Bold move, friend.",     // no
-  "Try asking later... when I’m less busy binge-watching.",                    // no
-  "I don't know, summon a raven and whisper your question into the void.",     // no
-  "The answer is yes, as foretold by the mystical spaghetti.",                 // yes
-  "Yes, actually no. Wait, yes? Let’s go with potato.",                        // no
-  "Maybeee... if the stars align and your pizza has extra cheese.",            // yes
-  "Definitely! Unless gravity stops working.",                                 // yes
-  "It is decidedly so. So what? Buy a llama and see what happens.",            // yes
-  "My reply is no, and also banana pudding.",                                  // no
-  "My sources confirm that the answer is no.\nSource: A suspicious pigeon.",   // no
-  "As I see it, yes. As the chicken sees it, no. Trust who you like.",         // yes
-  "Don't count on it. Count on marshmallows instead.",                         // no
-  "Whoa! Why do I have to answer this? Ask a rubber duck.",                    // no
-  "Highly unlikely. Unless it’s Tuesday on Mars.",                             // no
-  "Sure, but with extreme caution and a tinfoil hat.",                         // yes
-  "What kind of silly question is that?? No! Also, here’s a kazoo.",           // no
-  "Try asking this to a chicken. They’re the true oracles.",                   // no
-  "Not in a million years! Unless the earth is made of cheese.",               // no
-  "As a matter of fact, yes. And it’s raining tacos.",                         // yes
-  "It's a no, but the raccoons might know better.",                            // no
-  "In the end, it’s not a bad choice. Or is it? Mwahaha.",                     // yes
-  "Nope, not today. Try tomorrow after coffee.",                               // no
-  "Cross your fingers! Or better yet, cross the streams.",                     // yes
-  "Nope. *shakes head like a very judgmental parrot*",                         // no
-  "The fortune cookie said yes, but it was written in crayon.",                // yes
-  "Sorry, the fortune cookie over there said no. Blame it.",                   // no
-  "Sorry, not happening. But you get a virtual sticker for trying!",           // no
-  "I'll have to consult my sources... *flips a pancake*... no.",               // no
-  "I'll have to consult the magic 8-ball... *shakes it violently*... still no.", // no
-  "I'm not sure, but your imaginary friend says yes.",                         // yes
-  "This question flew over my head, so I’ll just say 'llama'.",                // no
-  "The answer is yes, but only if you do it while wearing socks on your hands.", // yes
-  "No, and I think you broke the space-time continuum by asking.",             // no
-  "Why not? What’s the worst that could happen? Oh wait...",                   // no
-  "The stars say yes, but the planets are still debating.",                    // yes
-  "The universe just facepalmed at your question.",                            // no
-  "Ask again while juggling flaming pineapples for a clearer answer.",         // no
-  "Nope, not unless you bribe me with tacos.",                                 // no
-  "I consulted the oracle... she’s out to lunch. Try later.",                  // no
-  "Yes, but only if you can lick your elbow right now.",                       // yes
-  "No, because I said so and I’m very wise. Also, I’m a plastic ball.",        // no
-  "Yes. No. Wait, I’ve lost track. Did you hear that noise?",                  // no
-  "Absolutely, as long as you bring me a rubber chicken as tribute.",          // yes
-  "I asked a wizard, and they just laughed hysterically.",                     // no
-  "The spirits say no, but the ghosts are nodding yes.",                       // no
-  "Yes, if you believe in unicorns and the power of friendship.",              // yes
-  "No, and also you might want to move. Something’s behind you.",              // no
-  "Ask again, but this time with interpretive dance.",                         // no
-  "Definitely! Unless the moon turns into cheese. Then no.",                   // yes
-  "I see... wait, no, I don’t see. My crystal ball is buffering.",             // no
-  "Sure! But only after a karaoke duet with a raccoon.",                       // yes
-  "Yes, but only if you promise not to tell the ducks.",                       // yes
-  "No way, unless you can recite the alphabet backwards in one breath.",       // no
-  "Ask the magic mushroom. It’s way more in touch with reality than I am.",    // no
-  "No, because gravity disagrees with your premise.",                          // no
-  "Yes, but first you must complete the sacred quest for nachos.",             // yes
-  "The answer is hidden in the folds of your laundry. Go check.",              // no
-  "I would answer, but I’m legally obligated to stay mysterious.",             // no
-  "Absolutely! If you can solve this riddle: What walks on four legs in the morning, two legs at noon, and... oh wait, wrong universe.", // yes
-  "The council of frogs says yes, but only if you croak like one.",            // yes
-  "No, but only because the Magic 8-Ball union forbids it.",                   // no
-  "Yes, if the dog wags its tail twice before the clock strikes midnight.",    // yes
-  "Try again after doing three cartwheels and making a wish.",                 // no
-  "The ducks in my dreams say no. They’re rarely wrong.",                      // no
-  "Not today, Satan. Not today.",                                              // no
-  "Yes, but only on Wednesdays during a full moon.",                           // yes
-  "No, because bananas don’t grow in winter.",                                 // no
-  "The answer is locked in a time capsule. Check back in 50 years.",           // no
-  "I don’t know, but it smells like trouble.",                                 // no
-  "Why not? The penguins approve, and that’s good enough for me.",             // yes
-  "Sure, but only if you say 'bubblegum' ten times fast.",                     // yes
-  "No, unless you can outsmart a sentient toaster.",                           // no
-  "The answer is yes, but it comes with a plot twist.",                        // yes
-  "Flip a coin, spin three times, and consult your nearest cactus. Good luck!", // no
-  "Only on the condition that you buy me a donut.",                            // yes
-  "Yes, but proceed at your own risk. The llamas are watching."                // yes
+const CHAOTIC_RESPONSES: [(&str, bool); 143] = [
+  ("Oops! The Magic 8-Ball shattered upon hearing your question. Coincidence?", false),
+  ("Reply hazy. Ask Google's evil twin, Froogle.", false),
+  ("Meh — Consult the ancient texts of Netflix subtitles.", false),
+  ("I don't know, but your cat probably does.", false),
+  ("Yes, but only if you wear a clown wig.", true),
+  ("No. Unless the moon winks at you first.", false),
+  ("It is decidedly a resounding honk-honk!", true),
+  ("Signs point to... maybe... or not... or wait... oh look, a squirrel!", false),
+  ("Signs point to... ~~yes~~ pancakes. Definitely pancakes.", false),
+  ("Why do you want to know? It's obviously a yes — trust the donut prophecy.", true),
+  ("Outlook not so good. Blame Mercury retrograde or your Wi-Fi.", false),
+  ("Outlook hazy. Consult the nearest fortune-telling hamster.", false),
+  ("What are you, a toaster in disguise?", false),
+  ("How the heck do you not know this? Ask a sock puppet!", false),
+  ("Really? Making life choices based on a magic ball? Bold move, friend.", false),
+  ("Try asking later... when I'm less busy binge-watching.", false),
+  ("I don't know, summon a raven and whisper your question into the void.", false),
+  ("The answer is yes, as foretold by the mystical spaghetti.", true),
+  ("Yes, actually no. Wait, yes? Let's go with potato.", false),
+  ("Maybeee... if the stars align and your pizza has extra cheese.", true),
+  ("Definitely! Unless gravity stops working.", true),
+  ("It is decidedly so. So what? Buy a llama and see what happens.", true),
+  ("My reply is no, and also banana pudding.", false),
+  ("My sources confirm that the answer is no.\nSource: A suspicious pigeon.", false),
+  ("As I see it, yes. As the chicken sees it, no. Trust who you like.", true),
+  ("Don't count on it. Count on marshmallows instead.", false),
+  ("Whoa! Why do I have to answer this? Ask a rubber duck.", false),
+  ("Highly unlikely. Unless it's Tuesday on Mars.", false),
+  ("Sure, but with extreme caution and a tinfoil hat.", true),
+  ("What kind of silly question is that?? No! Also, here's a kazoo.", false),
+  ("Try asking this to a chicken. They're the true oracles.", false),
+  ("Not in a million years! Unless the earth is made of cheese.", false),
+  ("As a matter of fact, yes. And it's raining tacos.", true),
+  ("It's a no, but the raccoons might know better.", false),
+  ("In the end, it's not a bad choice. Or is it? Mwahaha.", true),
+  ("Nope, not today. Try tomorrow after coffee.", false),
+  ("Cross your fingers! Or better yet, cross the streams.", true),
+  ("Nope. *shakes head like a very judgmental parrot*", false),
+  ("The fortune cookie said yes, but it was written in crayon.", true),
+  ("Sorry, the fortune cookie over there said no. Blame it.", false),
+  ("Sorry, not happening. But you get a virtual sticker for trying!", false),
+  ("I'll have to consult my sources... *flips a pancake*... no.", false),
+  ("I'll have to consult the magic 8-ball... *shakes it violently*... still no.", false),
+  ("I'm not sure, but your imaginary friend says yes.", true),
+  ("This question flew over my head, so I'll just say 'llama'.", false),
+  ("The answer is yes, but only if you do it while wearing socks on your hands.", true),
+  ("No, and I think you broke the space-time continuum by asking.", false),
+  ("Why not? What's the worst that could happen? Oh wait...", false),
+  ("The stars say yes, but the planets are still debating.", true),
+  ("The universe just facepalmed at your question.", false),
+  ("Ask again while juggling flaming pineapples for a clearer answer.", false),
+  ("Nope, not unless you bribe me with tacos.", false),
+  ("I consulted the oracle... she's out to lunch. Try later.", false),
+  ("Yes, but only if you can lick your elbow right now.", true),
+  ("No, because I said so and I'm very wise. Also, I'm a plastic ball.", false),
+  ("Yes. No. Wait, I've lost track. Did you hear that noise?", false),
+  ("Absolutely, as long as you bring me a rubber chicken as tribute.", true),
+  ("I asked a wizard, and they just laughed hysterically.", false),
+  ("The spirits say no, but the ghosts are nodding yes.", false),
+  ("Yes, if you believe in unicorns and the power of friendship.", true),
+  ("No, and also you might want to move. Something's behind you.", false),
+  ("Ask again, but this time with interpretive dance.", false),
+  ("Definitely! Unless the moon turns into cheese. Then no.", true),
+  ("I see... wait, no, I don't see. My crystal ball is buffering.", false),
+  ("Sure! But only after a karaoke duet with a raccoon.", true),
+  ("Yes, but only if you promise not to tell the ducks.", true),
+  ("No way, unless you can recite the alphabet backwards in one breath.", false),
+  ("Ask the magic mushroom. It's way more in touch with reality than I am.", false),
+  ("No, because gravity disagrees with your premise.", false),
+  ("Yes, but first you must complete the sacred quest for nachos.", true),
+  ("The answer is hidden in the folds of your laundry. Go check.", false),
+  ("I would answer, but I'm legally obligated to stay mysterious.", false),
+  ("The council of cats says yes, but only if you meow like one.", true),
+  ("No, but only because the Magic 8-Ball union forbids it.", false),
+  ("Yes, if the dog wags its tail twice before the clock strikes midnight.", true),
+  ("Try again after doing three cartwheels and making a wish.", false),
+  ("The ducks in my dreams say no. They're rarely wrong.", false),
+  ("Not today, Satan. Not today.", false),
+  ("Yes, but only on Wednesdays during a full moon.", true),
+  ("No, because bananas don't grow in winter.", false),
+  ("The answer is locked in a time capsule. Check back in 50 years.", false),
+  ("I don't know, but it smells like trouble.", false),
+  ("Why not? The penguins approve, and that's good enough for me.", true),
+  ("Sure, but only if you say 'bubblegum' ten times fast.", true),
+  ("No, unless you can outsmart a sentient toaster.", false),
+  ("The answer is yes, but it comes with a plot twist.", true),
+  ("Flip a coin, spin three times, and consult your nearest cactus. Good luck!", false),
+  ("Only on the condition that you buy me a donut.", true),
+  ("Yes, but proceed at your own risk. The llamas are watching.", true),
+  ("Yes, but only if you drive like a maniac.", true),
+  ("Absolutely, and the crabs are hosting a rave.", true),
+  ("No, but a mischievous gnome just winked at me, so.. yes.", true),
+  ("Yes, but you'll have to fight off a pack of ninja turtles first.", true),
+  ("Nope. The Magic 8-Ball union called for a strike, try later.", false),
+  ("The answer is clear: definitely a turtle. Wait, what was the question again?", false),
+  ("Yes, but only if you perform the forbidden kazoo solo.", true),
+  ("No, because I just consulted a very grumpy cloud.", false),
+  ("Sure, but beware of the ominous whispers in the wind.", true),
+  ("Absolutely not! Unless you bribe me with pancakes... then maybe.", false),
+  ("The prophecy foretells a yes, but only after you do a somersault.", true),
+  ("Negative, captain! The squirrels have spoken.", false),
+  ("Ask again after you defeat a level 70 pancake god.", false),
+  ("Yes, but only if you shout 'pineapple' while hopping on one foot.", true),
+  ("The stars say no, but the pigeons disagree. Trust your instincts.", false),
+  ("Yes, but at great personal risk to your snack supply.", true),
+  ("No way. Unless you're wearing a hat shaped like a pineapple.", false),
+  ("Consult the oracle of toasters. They hold the real truth.", false),
+  ("The vibes are off. Try again with a disco ball in hand.", false),
+  ("Yes, but the llamas demand a dance-off first.", true),
+  ("Nope. Also, why does your question smell like burnt toast?", false),
+  ("Yes, but the fabric of reality might unravel. Worth it?", true),
+  ("No, because an interdimensional ferret stole the answer.", false),
+  ("Absolutely! But only if you chant 'banana' three times at sunrise.", true),
+  ("No, unless you appease the gummy bear council with offerings.", false),
+  ("Maybe, but the answer is hidden in the Great Taco of Wisdom.", false),
+  ("Yes, but don't trust the robot vacuum. It knows too much.", true),
+  ("I see a yes in your future... or a spaghetti monster. Hard to say.", true),
+  ("Ask a sock puppet again, but this time in interpretive mime.", false),
+  ("It's a no, but the goldfish thinks otherwise. Who do you trust?", false),
+  ("Signs point to yes, but only if you name a star after a pineapple.", true),
+  ("The answer is no. Unless it's opposite day, then yes.", false),
+  ("Yes, but only if the answer doesn't involve marmalade.", true),
+  ("I'm sorry, Dave, I can't do that. Oh wait, wrong universe. No.", false),
+  ("The Magic 8-Ball has declared a state of confusion, try again.", false),
+  ("Yes, but it might result in spontaneous interpretive breakdancing.", true),
+  ("The frogs are undecided. Maybe bribe them with flies?", false),
+  ("A resounding yes! Unless you're allergic to good luck.", true),
+  ("No, and also stop shaking me so hard! I'm fragile!", false),
+  ("Yes, but only if you can out-dance a crab at karaoke night.", true),
+  ("Nope, the answer is currently orbiting Jupiter. Check back in a century.", false),
+  ("ASK AGAIN—wait, no, don't! I'm on break", false),
+  ("Hahahahaha.. no!", false),
+  ("I'm an 8-ball, not your therapist.. But yes!", true),
+  ("God has increased your difficulty to insane, 8-ball said go ahead!", true),
+  ("**Error 404:** Answer not found", false),
+  ("All signs to point to—ỳ̸̹͈́e̵̥̝͐̋s̶̺͍̉", true),
+  ("The spirits are busy! Leave a message after the beep. *extremely loud beep*", false),
+  ("Sorry, I accidentally threw your question into the trash.", false),
+  ("Yes!! Now go and cause some mayhem!!!", true),
+  ("Yes, you weirdo...", true),
+  ("ya", true),
+  (
+    "Bro, you spoke some gibberish sentence to the god, he sighed and signalled **yes** back!",
+    true
+  ),
+  ("Yes, but tell no one. THEY are listening!", true)
 ];
 
-fn get_random_response() -> &'static str { RESPONSES[random::<usize>() % RESPONSES.len()] }
+const UWU_RESPONSES: [(&str, bool); 50] = [
+  ("Oopsie! The magic baww got fwightened by youw question, sowwy! >_<", false),
+  ("Hmmm... wet me consuwt my pwushie cowwection... OwO it's a 'maybe?'", false),
+  ("Oh nyo~ the staws awe too shy to answew >w<", false),
+  ("Yes! UwU but onwy if you give me a headpat fiwst!", true),
+  ("Nyope! But I bet chu' can twy again watew! >w<", false),
+  ("Mmmm... I dink it's a 'pwobabwy?' OwO", true),
+  ("The mysticaw fwuffbaww says 'no', but chu awe stiww amazing! >w<", false),
+  ("Oh my fwuff! It's a big YES! UwU", true),
+  ("No way, but chu can get a snuggwe instead! UwU", false),
+  ("Hmmm... nyani?? The answew wawned away! O.O", false),
+  ("Yippee! The answew is absowutewy YES, nyu~!", true),
+  ("Nuuuuu, the wittwe magic is feewing shy... twy again watew, pwomise!", false),
+  ("Hewwo? Hewwo? Magic baww says... oh, it feww asweep >w<", false),
+  ("Maybe! But onwy if chu' twy wif youw happiest smiwe! UwU", true),
+  ("No, but chu awe stiww pwetty bwoomin' paw-some!", false),
+  ("The fwuffies awe undecided... ask a bun bun fwiend! >w<", false),
+  ("Yes, but onwy if chu bwink wike a wittwe kitty! ^w^", true),
+  ("Magic baww is wooking into it... uh-oh! It got stuck in fwuff o.O", false),
+  ("Noooo, but chu can have a tummy wub to cheew chu up! UwU", false),
+  ("Mmmm... I smeww a 'yes', wike fwuffy pancakies! >w<", true),
+  ("Huwwo? Staws awe purring, chu' get a soft nyes~", true),
+  ("Oops, chu bwew my mind wif dat one. Wet's caww it a nyope~", false),
+  ("The answew is a fwuffy YES! Now go do a happy dance~ UwU", true),
+  ("Nyani?? Magic baww says 'no', but chu awe stiww cute >_<", false),
+  ("Hmm, I dink chu awe wooking fow... YESSS! UwU", true),
+  ("Nyu-uh! But chu can twy asking a cheeky pidgeon! UwU", false),
+  ("Yes! But chu must pwomise to make fwiends wif a cuddwy bunny~", true),
+  ("Mmmm... nyope! Sowwy, but chu'we stiww bwoomin' pawsome! >w<", false),
+  ("Yes, yes, aww the yesses in the wowwd fow chu! >w<", true),
+  ("Nyooooope! But chu awe too fwuffy to be sad >w<", false),
+  ("OwO it's a paw-sitive YES fwom me uwu!", true),
+  ("UwU Magic fwuff says 'nyope', but gives chu a cozy bwankie!", false),
+  ("M-m-maybe! Chu might need to twy a cute head tiwt fiwst~", false),
+  ("Yes, UwU! But make suwe to cwink a toastie wif milkies~", true),
+  ("Mmmm... I dink chu awe onto something gweat! It's YESSS! UwU", true),
+  ("Nyaww, magic baww says no, but chu awe stiww adorable~ >w<", false),
+  ("The staws awe wispiewing 'Yes' just fow chu! >w<", true),
+  ("Oh nyo, the cosmic fwuff says 'nyope', but chu awe bwoomin' bwootiful!", false),
+  ("Yes! Go fo' it wike a puppy chasing da sunshine~", true),
+  ("Nuh-uh, not dis time. But chu'we so fwuffin' cute dat it's okay! UwU", false),
+  ("Pawsitively YES! But pwomise chu'ww keep being pwecious~ >_<", true),
+  ("Nyaww, it's a 'no', but chu awe stiww pwetty amazing! UwU", false),
+  ("Yes! Go get it wike a kitty pwouncing on its favouwite toyyy! OwO", true),
+  ("Hmmm... Magic fwuffies awe undeciwded. Twy a hug fiwst? >w<", false),
+  ("Oh nyes! But chu must say 'Nyan nyan' to seaw da deaw!", true),
+  ("Nyani?? Magic baww says nyope, but a kissy on da cheek fixes evewyfing! UwU", false),
+  ("OwO The magic wainbows awe wifting chu to a 'yes'! Go fow it!", true),
+  ("Oh nyo... the fwuffies awe shy dis time. Twy again wif an extwa cwute smiwe~ >w<", false),
+  ("OwO yus yus! Definitewy a big YES!!", true),
+  ("Uwu~ oh nyo, it wooks wike a no... sowwy!", false)
+];
 
-fn get_random_chicken_response() -> &'static str { CHICKEN_RESPONSES[random::<usize>() % CHICKEN_RESPONSES.len()] }
+fn get_random_response() -> &'static str { RESPONSES[random::<u32>() as usize % RESPONSES.len()].0 }
 
-fn get_random_chaotic_response() -> &'static str { CHAOTIC_RESPONSES[random::<usize>() % CHAOTIC_RESPONSES.len()] }
+fn get_random_chicken_response() -> &'static str { CHICKEN_RESPONSES[random::<u32>() as usize % CHICKEN_RESPONSES.len()].0 }
+
+fn get_random_chaotic_response() -> &'static str { CHAOTIC_RESPONSES[random::<u32>() as usize % CHAOTIC_RESPONSES.len()].0 }
+
+fn get_random_uwu_response() -> &'static str { UWU_RESPONSES[random::<u32>() as usize % UWU_RESPONSES.len()].0 }
