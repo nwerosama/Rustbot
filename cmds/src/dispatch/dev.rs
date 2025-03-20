@@ -1,11 +1,7 @@
 use {
   poise::{
     CreateReply,
-    serenity_prelude::{
-      ChannelId,
-      ShardId,
-      ShardRunnerInfo
-    }
+    serenity_prelude::ChannelId
   },
   rustbot_lib::{
     RustbotContext,
@@ -13,7 +9,7 @@ use {
   }
 };
 
-async fn format_shard_info(
+/* async fn format_shard_info(
   id: &ShardId,
   runner: &ShardRunnerInfo,
   ctx: &RustbotContext<'_>
@@ -35,7 +31,7 @@ async fn format_shard_info(
   string.push_str(&format!("> Guilds: **{guild_count}**"));
 
   string
-}
+} */
 
 /// Developer commands
 #[poise::command(
@@ -44,7 +40,7 @@ async fn format_shard_info(
   owners_only,
   install_context = "Guild|User",
   interaction_context = "Guild|BotDm|PrivateChannel",
-  subcommands("deploy", "servers", "shards", "echo")
+  subcommands("deploy", "servers", "echo")
 )]
 pub async fn dev(_: RustbotContext<'_>) -> RustbotResult<()> { Ok(()) }
 
@@ -62,7 +58,10 @@ async fn servers(ctx: RustbotContext<'_>) -> RustbotResult<()> {
   Ok(())
 }
 
-/// View the status of available shards
+// Re-enable when proper implementation takes place, since
+// it got removed during Serenity's gateway refactor.
+// -----
+/* /// View the status of available shards
 #[poise::command(slash_command)]
 async fn shards(ctx: RustbotContext<'_>) -> RustbotResult<()> {
   let shard_runners = ctx.framework().shard_manager().runners.clone();
@@ -82,7 +81,7 @@ async fn shards(ctx: RustbotContext<'_>) -> RustbotResult<()> {
   ctx.reply(shard_info.join("\n\n")).await?;
 
   Ok(())
-}
+} */
 
 /// Turn your message into a bot message
 #[poise::command(slash_command)]

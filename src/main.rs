@@ -11,7 +11,7 @@ use {
     builder::CreateAllowedMentions
   },
   rustbot_cmds::collect,
-  rustbot_events::events::processor,
+  rustbot_events::RustbotEvents,
   rustbot_lib::{
     RustbotData,
     config::BINARY_PROPERTIES,
@@ -66,7 +66,6 @@ async fn main() {
       allowed_mentions: Some(CreateAllowedMentions::default().empty_users()),
       initialize_owners: true,
       skip_checks_for_owners: true,
-      event_handler: |framework, event| Box::pin(processor(framework, event)),
       ..Default::default()
     })
     .build();
@@ -76,6 +75,7 @@ async fn main() {
     GatewayIntents::GUILDS | GatewayIntents::GUILD_MESSAGES | GatewayIntents::MESSAGE_CONTENT
   )
   .framework(framework)
+  .event_handler(RustbotEvents)
   .data(Arc::clone(&data))
   .activity(ActivityData::custom("nep nep!"))
   .await
@@ -84,15 +84,19 @@ async fn main() {
   spawn_task(example_task::ExampleTask, Arc::clone(&data)).await;
   spawn_task(example_task2::ExampleTask2, Arc::clone(&data)).await;
 
-  let shard_manager = client.shard_manager.clone();
+  let exit_signal = tokio::spawn(async move { shutdown::gracefully_shutdown().await });
 
-  tokio::spawn(async move {
-    shutdown::gracefully_shutdown().await;
-    shard_manager.shutdown_all().await;
-  });
-
-  if let Err(why) = client.start_autosharded().await {
-    println!("Error starting client: {why:#?}");
+  tokio::select! {
+    client_result = client.start() => {
+      if let Err(why) = client_result {
+        eprintln!("Client error: {why:#?}")
+      }
+    },
+    shutdown = exit_signal => {
+      if shutdown.unwrap() {
+        std::process::exit(0)
+      }
+    }
   }
 }
 

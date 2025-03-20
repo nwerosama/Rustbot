@@ -1,4 +1,6 @@
-pub mod events;
+mod events;
+
+pub use events::RustbotEvents;
 
 // use serde_json::json;
 /* use poise::serenity_prelude::{

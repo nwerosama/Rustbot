@@ -19,7 +19,6 @@ pub async fn fw_errors(error: FrameworkError<'_, RustbotData, RustbotError>) {
         .await
         .expect("Error sending message");
     },
-    poise::FrameworkError::EventHandler { error, event, .. } => println!("PoiseEventHandlerError({}): {error}", event.snake_case_name()),
     poise::FrameworkError::NotAnOwner { ctx, .. } => {
       println!(
         "PoiseNotAnOwner: {} tried to execute a developer-level command ({})",

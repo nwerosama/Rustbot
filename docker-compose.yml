@@ -1,6 +1,6 @@
 services:
   app:
     container_name: rustbot-app
-    #image: 'git.toast-server.net/toast/rustbot:main'
+    #image: 'git.toast-server.net/nwerosama/rustbot:main'
     build: .
     restart: unless-stopped

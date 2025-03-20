@@ -6,7 +6,7 @@ use tokio::{
   }
 };
 
-pub async fn gracefully_shutdown() {
+pub async fn gracefully_shutdown() -> bool {
   let [mut s1, mut s2, mut s3] = [
     signal(SignalKind::interrupt()).unwrap(),
     signal(SignalKind::hangup()).unwrap(),
@@ -20,4 +20,5 @@ pub async fn gracefully_shutdown() {
   );
 
   println!("\nRustbot says goodbye! 👋");
+  true
 }
