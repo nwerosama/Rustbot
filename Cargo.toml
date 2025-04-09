@@ -7,23 +7,23 @@ edition = "2024"
 members = [
   "cmds",
   "events",
-  "tasks",
   "library",
+  "tasks",
   "tsclient"
 ]
 
 [workspace.dependencies]
-bytes = "1.10.0"
-cargo_toml = "0.22.0"
+bytes = "1.10.1"
+cargo_toml = "0.22.1"
 poise = "0.6.1"
 regex = "1.11.1"
-serde = "1.0.217"
+serde = "1.0.219"
 rand = "0.9.0"
-sysinfo = "0.34.0"
-time = "0.3.37"
+sysinfo = "0.34.2"
+time = "0.3.41"
 uptime_lib = "0.3.1"
-tokio = { version = "1.43.0", features = ["rt-multi-thread", "macros", "signal"] }
-reqwest = { version = "0.12.12", features = ["native-tls-vendored"] }
+tokio = { version = "1.44.2", features = ["rt-multi-thread", "macros", "signal"] }
+reqwest = { version = "0.12.15", features = ["native-tls-vendored"] }
 rustbot_lib = { path = "library" }
 
 [dependencies]
@@ -31,8 +31,8 @@ poise = { workspace = true }
 rustbot_cmds = { path = "cmds" }
 rustbot_events = { path = "events" }
 rustbot_lib = { workspace = true }
-rustbot_tokens = { path = "tsclient" }
 rustbot_tasks = { path = "tasks" }
+rustbot_tokens = { path = "tsclient" }
 tokio = { workspace = true }
 
 [patch.crates-io]
@@ -48,9 +48,6 @@ path = "src/main.rs"
 
 [profile.dev]
 opt-level = 0
-debug = true
 
 [profile.release]
 opt-level = 2
-debug = false
-strip = true

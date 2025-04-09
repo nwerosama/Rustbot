@@ -1,6 +1,5 @@
 {
+  "files.trimTrailingWhitespace": true,
   "rust-analyzer.showUnlinkedFileNotification": false,
-  "rust-analyzer.linkedProjects": [
-    "./Cargo.toml"
-  ]
+  "rust-analyzer.linkedProjects": [ "./Cargo.toml" ]
 }

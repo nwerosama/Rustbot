@@ -1,4 +1,5 @@
 #!/bin/bash
 
-export $(cat .env.bot | xargs)
+export $(grep -v '^#' .env.bot | xargs)
 clear && cargo fmt && cargo run
+unset $(grep -v '^#' .env.bot | cut -d= -f1)

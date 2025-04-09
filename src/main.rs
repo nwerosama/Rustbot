@@ -1,7 +1,7 @@
 mod errors;
 mod shutdown;
-// https://cdn.toast-server.net/RustFSHiearchy.png
-// Using the new filesystem hierarchy
+// https://cdn.toast-server.net/RustFSHiearachy.png
+// Using the new filesystem hiearachy
 
 use {
   poise::serenity_prelude::{
