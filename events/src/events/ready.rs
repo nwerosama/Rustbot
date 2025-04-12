@@ -2,11 +2,11 @@ use super::RUSTBOT_EVENT;
 
 use {
   poise::serenity_prelude::{
-    ChannelId,
     Context,
     CreateEmbed,
     CreateEmbedAuthor,
     CreateMessage,
+    GenericChannelId,
     Ready
   },
   rustbot_lib::{
@@ -49,8 +49,8 @@ async fn ready_once(
     .thumbnail(ready.user.avatar_url().unwrap_or_default())
     .author(CreateEmbedAuthor::new(format!("{} is ready!", ready.user.name)));
 
-  ChannelId::new(BINARY_PROPERTIES.rustbot_logs)
-    .send_message(&ctx.http, message.add_embed(ready_embed))
+  GenericChannelId::new(BINARY_PROPERTIES.rustbot_logs)
+    .send_message(&ctx.http, message.embed(ready_embed))
     .await?;
 
   Ok(())

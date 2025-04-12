@@ -1,7 +1,10 @@
 use {
   poise::{
     CreateReply,
-    serenity_prelude::ChannelId
+    serenity_prelude::{
+      ChannelId,
+      GenericChannelId
+    }
   },
   rustbot_lib::{
     RustbotContext,
@@ -96,10 +99,10 @@ async fn echo(
 
   let channel = match channel {
     Some(c) => c,
-    None => ctx.channel_id()
+    None => ChannelId::new(ctx.channel_id().get())
   };
 
-  match ChannelId::new(channel.get()).say(ctx.http(), message).await {
+  match GenericChannelId::new(channel.get()).say(ctx.http(), message).await {
     Ok(_) => {
       ctx.send(CreateReply::new().content("Sent!").ephemeral(true)).await?;
     },

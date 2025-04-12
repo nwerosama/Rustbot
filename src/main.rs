@@ -36,8 +36,8 @@ async fn main() {
       commands: collect!(),
       pre_command: |ctx| {
         Box::pin(async move {
-          let get_guild_channel_name = match ctx.guild_channel().await {
-            Some(channel) => format!("in #{}", channel.name.clone()),
+          let get_guild_channel_name = match ctx.channel().await {
+            Some(channel) => format!("in #{}", channel.guild().unwrap_or_default().base.name),
             None => String::from("")
           };
           let prefix = ctx
