@@ -46,7 +46,7 @@ async fn main() {
             .map_or("/", |_| ctx.framework().options.prefix_options.prefix.as_ref().unwrap());
 
           println!(
-            "Discord[{}:S{}]: {} ran {prefix}{} {get_guild_channel_name}",
+            "Discord[{}:S{}] {} ran {prefix}{} {get_guild_channel_name}",
             get_guild_name(ctx),
             ctx.serenity_context().shard_id,
             ctx.author().name,
