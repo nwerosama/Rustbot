@@ -2,8 +2,11 @@ use {
   poise::{
     CreateReply,
     serenity_prelude::{
+      Cache,
       ChannelId,
-      GenericChannelId
+      GenericChannelId,
+      ShardId,
+      ShardRunnerInfo
     }
   },
   rustbot_lib::{
@@ -12,10 +15,10 @@ use {
   }
 };
 
-/* async fn format_shard_info(
+async fn format_shard_info(
   id: &ShardId,
   runner: &ShardRunnerInfo,
-  ctx: &RustbotContext<'_>
+  cache: &Cache
 ) -> String {
   let mut string = String::new();
 
@@ -25,8 +28,8 @@ use {
   };
 
   let status = runner.stage.to_string();
-  let shard_count = ctx.cache().shard_count();
-  let guild_count = ctx.cache().guilds().into_iter().filter(|g| g.shard_id(shard_count) == id.0).count() as u64;
+  let shard_count = cache.shard_count();
+  let guild_count = cache.guilds().into_iter().filter(|g| g.shard_id(shard_count) == id.0).count() as u64;
 
   string.push_str(&format!("**Shard {id}**\n"));
   string.push_str(&format!("> Heartbeat: {heartbeat}\n"));
@@ -34,7 +37,7 @@ use {
   string.push_str(&format!("> Guilds: **{guild_count}**"));
 
   string
-} */
+}
 
 /// Developer commands
 #[poise::command(
@@ -43,7 +46,7 @@ use {
   owners_only,
   install_context = "Guild|User",
   interaction_context = "Guild|BotDm|PrivateChannel",
-  subcommands("deploy", "servers", "echo")
+  subcommands("deploy", "servers", "shards", "echo")
 )]
 pub async fn dev(_: RustbotContext<'_>) -> RustbotResult<()> { Ok(()) }
 
@@ -61,14 +64,10 @@ async fn servers(ctx: RustbotContext<'_>) -> RustbotResult<()> {
   Ok(())
 }
 
-// Re-enable when proper implementation takes place, since
-// it got removed during Serenity's gateway refactor.
-// -----
-/* /// View the status of available shards
+/// View the status of available shards
 #[poise::command(slash_command)]
 async fn shards(ctx: RustbotContext<'_>) -> RustbotResult<()> {
-  let shard_runners = ctx.framework().shard_manager().runners.clone();
-  let runners = shard_runners.lock().await;
+  let runners = ctx.serenity_context().runners.clone();
 
   if runners.is_empty() {
     ctx.reply("`ShardsReady` event hasn't fired yet!").await?;
@@ -76,15 +75,17 @@ async fn shards(ctx: RustbotContext<'_>) -> RustbotResult<()> {
   }
 
   let mut shard_info = Vec::new();
-  for (id, runner) in runners.iter() {
-    let info = format_shard_info(id, runner, &ctx).await;
+  for pair in runners.iter() {
+    let id = *pair.key();
+    let (runner, _) = pair.value();
+    let info = format_shard_info(&id, runner, ctx.cache()).await;
     shard_info.push(info);
   }
 
   ctx.reply(shard_info.join("\n\n")).await?;
 
   Ok(())
-} */
+}
 
 /// Turn your message into a bot message
 #[poise::command(slash_command)]
