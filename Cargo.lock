@@ -2042,9 +2042,9 @@ dependencies = [
 
 [[package]]
 name = "tokenservice-client"
-version = "0.4.4"
+version = "0.4.5"
 source = "registry+https://git.toast-server.net/nwerosama/_cargo-index"
-checksum = "500adf2b79e473cbd42dbb67224f77595a9857812783c0e41e302373956ec6f6"
+checksum = "9557ed371b205d18000a77a5ba1112d135167d345c72a6955299b791ed91156b"
 dependencies = [
  "reqwest",
  "serde",
