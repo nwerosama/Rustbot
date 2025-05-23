@@ -12,3 +12,4 @@ rustbot_lib = { workspace = true }
 serde = { workspace = true }
 sysinfo = { workspace = true }
 uptime_lib = { workspace = true }
+asahi = { workspace = true }

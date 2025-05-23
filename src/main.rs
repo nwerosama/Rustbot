@@ -4,6 +4,7 @@ mod shutdown;
 // Using the new filesystem hiearachy
 
 use {
+  asahi::spawn,
   poise::serenity_prelude::{
     ActivityData,
     ClientBuilder,
@@ -17,7 +18,6 @@ use {
     config::BINARY_PROPERTIES,
     utils::get_guild_name
   },
-  rustbot_tasks::spawn_task,
   rustbot_tokens::discord_token,
   std::{
     borrow::Cow,
@@ -81,8 +81,8 @@ async fn main() {
   .await
   .expect("Error creating client");
 
-  spawn_task(example_task::ExampleTask, Arc::clone(&data)).await;
-  spawn_task(example_task2::ExampleTask2, Arc::clone(&data)).await;
+  spawn(example_task::ExampleTask, Arc::clone(&data));
+  spawn(example_task2::ExampleTask2, Arc::clone(&data));
 
   let exit_signal = tokio::spawn(async move { shutdown::gracefully_shutdown().await });
 
@@ -102,29 +102,28 @@ async fn main() {
 
 mod example_task {
   use {
-    poise::serenity_prelude::async_trait,
-    rustbot_lib::{
-      RustbotData,
-      RustbotResult
+    asahi::{
+      AsahiCoordinator,
+      AsahiResult,
+      async_trait
     },
-    rustbot_tasks::TaskCoordinator,
-    std::sync::Arc,
-    tokio::time::Duration
+    rustbot_lib::RustbotData,
+    std::sync::Arc
   };
 
   #[derive(Clone)]
   pub struct ExampleTask;
 
   #[async_trait]
-  impl TaskCoordinator for ExampleTask {
+  impl AsahiCoordinator<RustbotData> for ExampleTask {
     fn name(&self) -> &'static str { "example_task" }
 
-    fn interval(&self) -> Duration { Duration::from_secs(10) }
+    fn interval(&self) -> u64 { 10 }
 
-    async fn run(
+    async fn main_loop(
       &self,
       _: Arc<RustbotData>
-    ) -> RustbotResult<()> {
+    ) -> AsahiResult<()> {
       println!("hello from ExampleTask !");
       Ok(())
     }
@@ -133,29 +132,28 @@ mod example_task {
 
 mod example_task2 {
   use {
-    poise::serenity_prelude::async_trait,
-    rustbot_lib::{
-      RustbotData,
-      RustbotResult
+    asahi::{
+      AsahiCoordinator,
+      AsahiResult,
+      async_trait
     },
-    rustbot_tasks::TaskCoordinator,
-    std::sync::Arc,
-    tokio::time::Duration
+    rustbot_lib::RustbotData,
+    std::sync::Arc
   };
 
   #[derive(Clone)]
   pub struct ExampleTask2;
 
   #[async_trait]
-  impl TaskCoordinator for ExampleTask2 {
+  impl AsahiCoordinator<RustbotData> for ExampleTask2 {
     fn name(&self) -> &'static str { "example_task2" }
 
-    fn interval(&self) -> Duration { Duration::from_secs(5) }
+    fn interval(&self) -> u64 { 5 }
 
-    async fn run(
+    async fn main_loop(
       &self,
       _: Arc<RustbotData>
-    ) -> RustbotResult<()> {
+    ) -> AsahiResult<()> {
       println!("hello from ExampleTask2 !");
       Ok(())
     }

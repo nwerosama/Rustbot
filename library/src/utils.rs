@@ -19,8 +19,6 @@ pub static BOT_VERSION: LazyLock<String> = LazyLock::new(|| {
     .unwrap()
 });
 
-pub fn format_timestamp(timestamp: i64) -> String { format!("<t:{timestamp}>\n<t:{timestamp}:R>") }
-
 pub fn mention_dev(ctx: super::RustbotContext<'_>) -> Option<String> {
   let devs = super::config::BINARY_PROPERTIES.developers.clone();
   let app_owners = ctx.framework().options().owners.clone();
@@ -41,21 +39,4 @@ pub fn get_guild_name(ctx: super::RustbotContext<'_>) -> String {
     Some(guild) => guild.name.clone().to_string(),
     None => String::from("DM")
   }
-}
-
-pub fn format_duration(secs: u64) -> String {
-  let days = secs / 86400;
-  let hours = (secs % 86400) / 3600;
-  let minutes = (secs % 3600) / 60;
-  let seconds = secs % 60;
-
-  let components = [(days, "d"), (hours, "h"), (minutes, "m"), (seconds, "s")];
-
-  let formatted_string: Vec<String> = components
-    .iter()
-    .filter(|&&(value, _)| value > 0)
-    .map(|&(value, suffix)| format!("{value}{suffix}"))
-    .collect();
-
-  formatted_string.join(", ")
 }

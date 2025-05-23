@@ -8,30 +8,30 @@ members = [
   "cmds",
   "events",
   "library",
-  "tasks",
   "tsclient"
 ]
 
 [workspace.dependencies]
+asahi = { version = "0.1.4", features = ["coordinator"] }
 bytes = "1.10.1"
 cargo_toml = "0.22.1"
 poise = "0.6.1"
 regex = "1.11.1"
 serde = "1.0.219"
 rand = "0.9.1"
-sysinfo = "0.35.0"
+sysinfo = "0.35.1"
 time = "0.3.41"
 uptime_lib = "0.3.1"
-tokio = { version = "1.44.2", features = ["rt-multi-thread", "macros", "signal"] }
+tokio = { version = "1.45.0", features = ["rt-multi-thread", "macros", "signal"] }
 reqwest = { version = "0.12.15", features = ["native-tls-vendored"] }
 rustbot_lib = { path = "library" }
 
 [dependencies]
+asahi = { workspace = true }
 poise = { workspace = true }
 rustbot_cmds = { path = "cmds" }
 rustbot_events = { path = "events" }
 rustbot_lib = { workspace = true }
-rustbot_tasks = { path = "tasks" }
 rustbot_tokens = { path = "tsclient" }
 tokio = { workspace = true }
 

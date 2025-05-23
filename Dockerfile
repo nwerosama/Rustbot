@@ -2,9 +2,11 @@ FROM scratch AS base
 WORKDIR /builder
 COPY . .
 
-FROM adelielinux/adelie:1.0-beta6@sha256:7126a96c19be064a487ba7176baa58200a26ce8fda02b851b4a0bef760b1f469
+FROM archlinux:base@sha256:c0965d07320c79ca2e3a1cc9e303757f6b0055aa0437571523f5eedf78b15690
 LABEL org.opencontainers.image.source="https://git.toast-server.net/nwerosama/Rustbot"
-RUN apk add --no-cache libgcc
+RUN pacman -Syu --noconfirm && \
+  rm -rf /var/cache/pacman/pkg/** && \
+  rm -rf /usr/share/{man,doc,info}
 WORKDIR /rustbot
-COPY --from=base /builder/target/x86_64-unknown-linux-musl/release/rustbot .
+COPY --from=base /builder/target/release/rustbot .
 CMD [ "./rustbot" ]
