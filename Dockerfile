@@ -2,7 +2,7 @@ FROM scratch AS base
 WORKDIR /builder
 COPY . .
 
-FROM archlinux:base@sha256:c0965d07320c79ca2e3a1cc9e303757f6b0055aa0437571523f5eedf78b15690
+FROM archlinux:base@sha256:5519bb4afc78843352ea5afb3ea022c76c93b22f6c762c87cdc2b6885860965b
 LABEL org.opencontainers.image.source="https://git.toast-server.net/nwerosama/Rustbot"
 RUN pacman -Syu --noconfirm && \
   rm -rf /var/cache/pacman/pkg/** && \
