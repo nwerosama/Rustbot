@@ -4,7 +4,11 @@ mod shutdown;
 // Using the new filesystem hiearachy
 
 use {
-  asahi::spawn,
+  asahi::{
+    error,
+    info,
+    spawn
+  },
   poise::serenity_prelude::{
     ActivityData,
     ClientBuilder,
@@ -27,6 +31,8 @@ use {
 
 #[tokio::main]
 async fn main() {
+  asahi::log_init();
+
   let prefix = Some(Cow::Borrowed(if BINARY_PROPERTIES.env.contains("prod") { "pg." } else { "pg!" }));
 
   let data = Arc::new(RustbotData {});
@@ -45,7 +51,7 @@ async fn main() {
             .prefix_action
             .map_or("/", |_| ctx.framework().options.prefix_options.prefix.as_ref().unwrap());
 
-          println!(
+          info!(
             "Discord[{}:S{}] {} ran {prefix}{} {get_guild_channel_name}",
             get_guild_name(ctx),
             ctx.serenity_context().shard_id,
@@ -82,19 +88,20 @@ async fn main() {
   .expect("Error creating client");
 
   spawn(example_task::ExampleTask, Arc::clone(&data));
-  spawn(example_task2::ExampleTask2, Arc::clone(&data));
 
+  let shutdown_trigger = client.shard_manager.get_shutdown_trigger();
   let exit_signal = tokio::spawn(async move { shutdown::gracefully_shutdown().await });
 
   tokio::select! {
     client_result = client.start() => {
       if let Err(why) = client_result {
-        eprintln!("Client error: {why:#?}")
+        error!("(Serenity) Error starting client: {why:#?}")
       }
     },
     shutdown = exit_signal => {
       if shutdown.unwrap() {
-        std::process::exit(0)
+        shutdown_trigger();
+        std::process::exit(0);
       }
     }
   }
@@ -105,7 +112,8 @@ mod example_task {
     asahi::{
       AsahiCoordinator,
       AsahiResult,
-      async_trait
+      async_trait,
+      info
     },
     rustbot_lib::RustbotData,
     std::sync::Arc
@@ -118,43 +126,13 @@ mod example_task {
   impl AsahiCoordinator<RustbotData> for ExampleTask {
     fn name(&self) -> &'static str { "example_task" }
 
-    fn interval(&self) -> u64 { 10 }
+    fn interval(&self) -> u64 { 15 }
 
     async fn main_loop(
       &self,
       _: Arc<RustbotData>
     ) -> AsahiResult<()> {
-      println!("hello from ExampleTask !");
-      Ok(())
-    }
-  }
-}
-
-mod example_task2 {
-  use {
-    asahi::{
-      AsahiCoordinator,
-      AsahiResult,
-      async_trait
-    },
-    rustbot_lib::RustbotData,
-    std::sync::Arc
-  };
-
-  #[derive(Clone)]
-  pub struct ExampleTask2;
-
-  #[async_trait]
-  impl AsahiCoordinator<RustbotData> for ExampleTask2 {
-    fn name(&self) -> &'static str { "example_task2" }
-
-    fn interval(&self) -> u64 { 5 }
-
-    async fn main_loop(
-      &self,
-      _: Arc<RustbotData>
-    ) -> AsahiResult<()> {
-      println!("hello from ExampleTask2 !");
+      info!("hello from ExampleTask !");
       Ok(())
     }
   }

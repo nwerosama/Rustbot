@@ -8,8 +8,8 @@ use tokio::{
 
 pub async fn gracefully_shutdown() -> bool {
   let [mut s1, mut s2, mut s3] = [
-    signal(SignalKind::interrupt()).unwrap(),
     signal(SignalKind::hangup()).unwrap(),
+    signal(SignalKind::interrupt()).unwrap(),
     signal(SignalKind::terminate()).unwrap()
   ];
 
@@ -19,6 +19,6 @@ pub async fn gracefully_shutdown() -> bool {
     v = s3.recv() => v.unwrap()
   );
 
-  println!("\nRustbot says goodbye! 👋");
+  asahi::info!("Rustbot says goodbye! 👋");
   true
 }

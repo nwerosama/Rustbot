@@ -7,8 +7,6 @@ use poise::serenity_prelude::{
   async_trait
 };
 
-pub const RUSTBOT_EVENT: &str = "RustbotEvent";
-
 pub struct RustbotEvents;
 
 #[async_trait]
@@ -20,7 +18,7 @@ impl EventHandler for RustbotEvents {
   ) {
     match event {
       FullEvent::Ready { data_about_bot, .. } => ready::on_ready(ctx, data_about_bot).await.unwrap(),
-      FullEvent::ShardsReady { total_shards, .. } => println!("{RUSTBOT_EVENT}[ShardsReady] {total_shards} shards are up and ready!"),
+      FullEvent::ShardsReady { total_shards, .. } => asahi::info!("[ShardsReady] {total_shards} shards are up and ready!"),
       _ => ()
     }
   }

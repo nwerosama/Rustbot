@@ -22,8 +22,8 @@ rand = "0.9.1"
 sysinfo = "0.35.1"
 time = "0.3.41"
 uptime_lib = "0.3.1"
-tokio = { version = "1.45.0", features = ["rt-multi-thread", "macros", "signal"] }
-reqwest = { version = "0.12.15", features = ["native-tls-vendored"] }
+tokio = { version = "1.45.1", features = ["rt-multi-thread", "macros", "signal"] }
+reqwest = { version = "0.12.19", features = ["native-tls-vendored"] }
 rustbot_lib = { path = "library" }
 
 [dependencies]
@@ -37,6 +37,7 @@ tokio = { workspace = true }
 
 [patch.crates-io]
 poise = { git = "https://github.com/serenity-rs/poise", branch = "serenity-next" }
+asahi = { git = "https://github.com/Niko-Devel/asahi", branch = "master" }
 
 [features]
 production = ["rustbot_lib/production", "rustbot_events/production"]

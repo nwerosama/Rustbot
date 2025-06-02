@@ -20,14 +20,15 @@ use {
   }
 };
 
-#[derive(poise::ChoiceParameter, Clone)]
+#[derive(poise::ChoiceParameter, Clone, Eq, PartialEq, Hash)]
 enum ResponseMode {
   Normal,
   Chicken,
   #[name = "Chaotic & Unhinged"]
   Chaotic,
   #[name = "UwU"]
-  Uwu
+  Uwu,
+  Femboy
 }
 
 impl Display for ResponseMode {
@@ -35,13 +36,44 @@ impl Display for ResponseMode {
     &self,
     f: &mut Formatter<'_>
   ) -> Result {
-    let resp = match self {
-      ResponseMode::Normal => "Normal",
-      ResponseMode::Chicken => "Chicken",
-      ResponseMode::Chaotic => "Chaotic & Unhinged",
-      ResponseMode::Uwu => "UwU"
-    };
-    write!(f, "{resp}")
+    write!(f, "{}", self.display_name())
+  }
+}
+
+impl ResponseMode {
+  fn display_name(&self) -> &'static str {
+    match self {
+      Self::Normal => "Normal",
+      Self::Chicken => "Chicken",
+      Self::Chaotic => "Chaotic & Unhinged",
+      Self::Uwu => "UwU",
+      Self::Femboy => "Femboy"
+    }
+  }
+
+  fn filename(&self) -> &'static str {
+    match self {
+      Self::Normal => "responses.txt",
+      Self::Chicken => "chicken_responses.txt",
+      Self::Chaotic => "chaotic_responses.txt",
+      Self::Uwu => "uwu_responses.txt",
+      Self::Femboy => "femboy_responses.txt"
+    }
+  }
+
+  fn responses(&self) -> &'static [(&'static str, bool)] {
+    match self {
+      Self::Normal => &RESPONSES,
+      Self::Chicken => &CHICKEN_RESPONSES,
+      Self::Chaotic => &CHAOTIC_RESPONSES,
+      Self::Uwu => &UWU_RESPONSES,
+      Self::Femboy => &FEMBOY_RESPONSES
+    }
+  }
+
+  fn get_random_response(&self) -> &'static str {
+    let responses = self.responses();
+    responses[random::<u32>() as usize % responses.len()].0
   }
 }
 
@@ -62,12 +94,8 @@ pub async fn eightball(
     return Ok(())
   }
 
-  let rand_resp = match mode {
-    Some(ResponseMode::Chicken) => get_random_chicken_response(),
-    Some(ResponseMode::Chaotic) => get_random_chaotic_response(),
-    Some(ResponseMode::Uwu) => get_random_uwu_response(),
-    _ => get_random_response()
-  };
+  let mode = mode.unwrap_or(ResponseMode::Normal);
+  let rand_resp = mode.get_random_response();
 
   ctx.reply(format!("> {question}\n{rand_resp}")).await?;
 
@@ -85,12 +113,7 @@ async fn show_list(
     return Ok(());
   }
 
-  let selected_responses = match list_type {
-    ResponseMode::Normal => RESPONSES.to_vec(),
-    ResponseMode::Chicken => CHICKEN_RESPONSES.to_vec(),
-    ResponseMode::Chaotic => CHAOTIC_RESPONSES.to_vec(),
-    ResponseMode::Uwu => UWU_RESPONSES.to_vec()
-  };
+  let selected_responses = list_type.responses();
 
   let total_yes = selected_responses.iter().filter(|&&(_, yes)| yes).count();
   let total_no = selected_responses.len() - total_yes;
@@ -100,29 +123,22 @@ async fn show_list(
   let content = [
     response_mode.clone(),
     "Totals:".to_string(),
-    format!(" - Yes: {total_yes}"),
-    format!(" - No: {total_no}"),
-    format!(" - Strings: {}", selected_responses.len()),
+    format!(" > Yes: {total_yes}"),
+    format!(" > No: {total_no}"),
+    format!(" > Strings: {}", selected_responses.len()),
     "-".to_string().repeat(response_mode.len()),
     response_strings.join("\n")
   ]
   .join("\n");
 
-  let filename = match list_type {
-    ResponseMode::Normal => "responses.txt",
-    ResponseMode::Chicken => "chicken_responses.txt",
-    ResponseMode::Chaotic => "chaotic_responses.txt",
-    ResponseMode::Uwu => "uwu_responses.txt"
-  };
-
   ctx
-    .send(CreateReply::new().attachment(CreateAttachment::bytes(Bytes::from(content), filename)))
+    .send(CreateReply::new().attachment(CreateAttachment::bytes(Bytes::from(content), list_type.filename())))
     .await?;
 
   Ok(())
 }
 
-const RESPONSES: [(&str, bool); 55] = [
+const RESPONSES: [(&str, bool); 80] = [
   ("Reply hazy. Look it up on Google.", false),
   ("Meh — Figure it out yourself.", false),
   ("I don't know, what do you think?", false),
@@ -187,7 +203,32 @@ const RESPONSES: [(&str, bool); 55] = [
   ("Better not tell you now.", false),
   ("Certainly in your favor.", true),
   ("Look within for the answer.", false),
-  ("Everything points to yes!", true)
+  ("Everything points to yes!", true),
+  ("Mmm... yeah, I would say so~", true),
+  ("Pfft, nope. Not a chance.", false),
+  ("Absolutely! Go for it, bestie~", true),
+  ("Not feeling it... sorry bud.", false),
+  ("Yes, but only if you believe it!", true),
+  ("Oof... no. Big no.", false),
+  ("Heck yeah!!", true),
+  ("Nahhh, that's sus.", false),
+  ("Totally! Like, 100%!", true),
+  ("Ehhh... probs not.", false),
+  ("With every fiber of my being: YES", true),
+  ("LOL no. Just no.", false),
+  ("Affirmative, captain!", true),
+  ("Negative. Abort mission.", false),
+  ("Yeppers!", true),
+  ("Nopers!", false),
+  ("Yasss queen, do it!!", true),
+  ("Girl, no.", false),
+  ("It's written in the stars: yes", true),
+  ("The stars are silent... I'd take that as a no.", false),
+  ("Yes, based on current information.", true),
+  ("Yes, it's a logical conclusion.", true),
+  ("No, it doesn't follow logically.", false),
+  ("Yes. Proceed as planned.", true),
+  ("No. Do not proceed.", false)
 ];
 
 const CHICKEN_RESPONSES: [(&str, bool); 54] = [
@@ -399,7 +440,7 @@ const CHAOTIC_RESPONSES: [(&str, bool); 143] = [
   ("Yes, but tell no one. THEY are listening!", true)
 ];
 
-const UWU_RESPONSES: [(&str, bool); 50] = [
+const UWU_RESPONSES: [(&str, bool); 90] = [
   ("Oopsie! The magic baww got fwightened by youw question, sowwy! >_<", false),
   ("Hmmm... wet me consuwt my pwushie cowwection... OwO it's a 'maybe?'", false),
   ("Oh nyo~ the staws awe too shy to answew >w<", false),
@@ -449,13 +490,88 @@ const UWU_RESPONSES: [(&str, bool); 50] = [
   ("OwO The magic wainbows awe wifting chu to a 'yes'! Go fow it!", true),
   ("Oh nyo... the fwuffies awe shy dis time. Twy again wif an extwa cwute smiwe~ >w<", false),
   ("OwO yus yus! Definitewy a big YES!!", true),
-  ("Uwu~ oh nyo, it wooks wike a no... sowwy!", false)
+  ("Uwu~ oh nyo, it wooks wike a no... sowwy!", false),
+  ("OwO magic cwouds say... y-y-yesss!! *fwuffy jiggwes*", true),
+  ("Oh nuuu... magic baww hid behind da couch! Gotta be a nyope~ >_<", false),
+  ("Hehe~ the wittwe staws awe giggwing... dey say YES! UwU", true),
+  ("Nuuu, da cosmic bunbun shaked its head... nyope.", false),
+  ("UwU yesh yesh!! Da pwaynet spiwits cheew fow chu~", true),
+  ("Oh nyo, da spawkwy wainbow faded... sowwy, it's a no >w<", false),
+  ("OwO big uwu yesss! Go snatch yo dreamies, nya~", true),
+  ("Hmmm... da fwuff got wost in a puff of gwittah... no answew yet ;w;", false),
+  ("YES!!! Da snuggwy duckies agwee! Waddle on, fwend~ UwU", true),
+  ("Nyope! But chu can boop my snoot anyway~ >w<", false),
+  ("Da candy staws say yes! Sugaw magic activated UwU", true),
+  ("Nuuuu... da tiny pawps say nyope, but chu'ww okie~", false),
+  ("OwO yassss! Da meowgic inside glows bwickwy fow chu!", true),
+  ("O-oh... magic went sweepy... nyope tiww watew >w<", false),
+  ("Yesy yesy!! But chu must paw-mise to smiwe wide~ UwU", true),
+  ("Mmm... da sky fwuffies awe undeciwded... bettew hug a teddy~", false),
+  ("A paw-some YES fwom da fuwfy counciw!! ^w^", true),
+  ("Nyaww... sowwy... da cookie cwuumbs said nooo... >_<", false),
+  ("UwU it's a cosmic YES! Go chase yo dream like a pwayfuw kitteh~", true),
+  ("Ah... da wittwe staw feww down... nyope dis time ;w;", false),
+  ("OwO yesss! Da magic paw says chu got dis!", true),
+  ("Nyope~ da wittwe staw shook its head~", false),
+  ("Yip yip! It's a pawsitive YES!", true),
+  ("Oh nuuu, da fwuffy magic says no dis time >w<", false),
+  ("UwU it's a shiny YES fwom da heavens!", true),
+  ("Hmm... da magic is snoozing... no answew 4 now~", false),
+  ("A bouncy YES! Go chase yo dweamies, fwend~", true),
+  ("Nuu, da magic said no but chu can twy again~", false),
+  ("Owo da kitty purrs a soft yes!", true),
+  ("Oh nyo... da bunbun hopped away wif yo answew. Guess it's a no >w<", false),
+  ("Yesss! Da cosmic uwu spirits say go fow it!", true),
+  ("Nuh-uh! Da stawss say wait a bit mowe~", false),
+  ("UwU magic gwitters a yes just fow chu~", true),
+  ("Nyope... da fwuffies awe shy dis time~", false),
+  ("OwO it's a sparkwy YES, shine on fwend!", true),
+  ("Awh... magic baww whispered a gentle no.", false),
+  ("Yes yes yes! Da snuggwe staw gwants it!", true),
+  ("Nu nu... da snoozy kitty says nyope today.", false),
+  ("OwO da cloudies drew a big YES!", true),
+  ("Oh... da tiny fwuffy voice said no... sowwy~", false)
 ];
 
-fn get_random_response() -> &'static str { RESPONSES[random::<u32>() as usize % RESPONSES.len()].0 }
-
-fn get_random_chicken_response() -> &'static str { CHICKEN_RESPONSES[random::<u32>() as usize % CHICKEN_RESPONSES.len()].0 }
-
-fn get_random_chaotic_response() -> &'static str { CHAOTIC_RESPONSES[random::<u32>() as usize % CHAOTIC_RESPONSES.len()].0 }
-
-fn get_random_uwu_response() -> &'static str { UWU_RESPONSES[random::<u32>() as usize % UWU_RESPONSES.len()].0 }
+const FEMBOY_RESPONSES: [(&str, bool); 40] = [
+  ("Oh, it's cute when you ask like that~ yeah, I say yes", true),
+  ("Mmm, maybe if you wink at me... but right now it's a no", false),
+  ("You better do it looking that fine~ of course it's a yes", true),
+  ("You're lucky I like you anyway, even if it's a no this time", false),
+  ("Go show off, cutie~ absolutely yes", true),
+  ("Aww~ no for now, but you can make it up to me later", false),
+  ("You've already got me convinced~ that's a yes", true),
+  ("Sweet talk me into it, maybe~ 'cause right now it's a no", false),
+  ("Don't forget who's cheering you on~ yes, obviously", true),
+  ("I'll let you buy me a drink instead~ no to the original question though", false),
+  ("Come here and tell me all about it after~ yes, of course", true),
+  ("At least you're still adorable~ but no, not this time", false),
+  ("Big yes, babe~ no doubt about it", true),
+  ("I'd still keep you around, even if it's a no", false),
+  ("I expect a kiss on the cheek as thanks~ that's a yes from me", true),
+  ("That smile's making me reconsider... but still a no for now", false),
+  ("You're too cute for me to say no~ so yeah, it's a yes", true),
+  ("You can make it up with a cuddle~ since it's a no today", false),
+  ("Don't leave me hanging, sweetheart~ yes, absolutely", true),
+  ("You're still my favorite troublemaker~ but it's a no right now", false),
+  ("I'll be waiting to see how cute you look doing it~ that's a yes", true),
+  ("If you ask nicely… maybe I'd say yes… but no for now", false),
+  ("That's a yes, darling~ you didn't even need to ask", true),
+  ("Hey, you're still the cutest in the room~ but no this time", false),
+  ("Maybe I'll let you celebrate with me later~ because yes", true),
+  ("I'll let you make it up to me with a hug~ since it's a no", false),
+  ("Now go show them what you've got, babe~ absolutely yes", true),
+  ("You're way too adorable to stay mad at~ but no, sorry", false),
+  ("I'll be watching every second, sweetheart~ yes, you got this", true),
+  ("Flash that smile again and I might change my answer… but for now, no", false),
+  ("Wouldn't wanna disappoint you~ so yes", true),
+  ("I'm still here cheering you on, cutie~ even if it's a no", false),
+  ("Maybe I'll reward you later~ but yes for now", true),
+  ("You're still doing amazing, promise~ even if it's a no", false),
+  ("Only because you're so irresistible~ yeah, it's a yes", true),
+  ("You're welcome to try and convince me~ but right now, it's a no", false),
+  ("That's a solid yes, baby~ you've got this", true),
+  ("Don't forget it~ you're still my favorite, even if it's a no", false),
+  ("Now don't make me chase you for it~ yes, definitely", true),
+  ("You're lucky I like you~ but still no", false)
+];

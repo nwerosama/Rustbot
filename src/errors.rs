@@ -1,4 +1,5 @@
 use {
+  asahi::error,
   poise::FrameworkError,
   rustbot_lib::{
     RustbotData,
@@ -9,8 +10,8 @@ use {
 
 pub async fn fw_errors(error: FrameworkError<'_, RustbotData, RustbotError>) {
   match error {
-    poise::FrameworkError::Command { error, ctx, .. } => {
-      println!("PoiseCommandError({}): {error}", ctx.command().qualified_name);
+    FrameworkError::Command { error, ctx, .. } => {
+      error!("PoiseCommandError({}): {error}", ctx.command().qualified_name);
       ctx
         .reply(format!(
           "Encountered an error during command execution, ask {} to check console for more details!",
@@ -19,8 +20,8 @@ pub async fn fw_errors(error: FrameworkError<'_, RustbotData, RustbotError>) {
         .await
         .expect("Error sending message");
     },
-    poise::FrameworkError::NotAnOwner { ctx, .. } => {
-      println!(
+    FrameworkError::NotAnOwner { ctx, .. } => {
+      error!(
         "PoiseNotAnOwner: {} tried to execute a developer-level command ({})",
         ctx.author().name,
         ctx.command().qualified_name
@@ -30,24 +31,24 @@ pub async fn fw_errors(error: FrameworkError<'_, RustbotData, RustbotError>) {
         .await
         .expect("Error sending message");
     },
-    poise::FrameworkError::UnknownInteraction { interaction, .. } => println!(
+    FrameworkError::UnknownInteraction { interaction, .. } => error!(
       "PoiseUnknownInteractionError: {} tried to execute an unknown interaction ({})",
       interaction.user.name, interaction.data.name
     ),
-    poise::FrameworkError::UnknownCommand { msg, .. } => println!(
+    FrameworkError::UnknownCommand { msg, .. } => error!(
       "PoiseUnknownCommandError: {} tried to execute an unknown command ({})",
       msg.author.name, msg.content
     ),
-    poise::FrameworkError::ArgumentParse { ctx, error, .. } => {
-      println!("PoiseArgumentParseError: {error}");
+    FrameworkError::ArgumentParse { ctx, error, .. } => {
+      error!("PoiseArgumentParseError: {error}");
       ctx
         .reply(format!("Error parsing argument(s): {error}"))
         .await
         .expect("Error sending message");
     },
-    poise::FrameworkError::CommandPanic { ctx, payload, .. } => {
+    FrameworkError::CommandPanic { ctx, payload, .. } => {
       if let Some(payload) = payload.clone() {
-        println!("PoiseCommandPanic: {payload}");
+        error!("PoiseCommandPanic: {payload}");
         ctx
           .reply(format!(
             "The command panicked, please tell my developer about this!\n**Error:**```\n{payload}\n```"
@@ -55,7 +56,7 @@ pub async fn fw_errors(error: FrameworkError<'_, RustbotData, RustbotError>) {
           .await
           .expect("Error sending message");
       } else {
-        println!("PoiseCommandPanic: No payload provided");
+        error!("PoiseCommandPanic: No payload provided");
         ctx
           .reply(
             [
@@ -68,6 +69,6 @@ pub async fn fw_errors(error: FrameworkError<'_, RustbotData, RustbotError>) {
           .expect("Error sending message");
       }
     },
-    other => println!("PoiseOtherError: {other}")
+    other => error!("PoiseOtherError: {other}")
   }
 }
