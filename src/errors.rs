@@ -11,7 +11,7 @@ use {
 pub async fn fw_errors(error: FrameworkError<'_, RustbotData, RustbotError>) {
   match error {
     FrameworkError::Command { error, ctx, .. } => {
-      error!("PoiseCommandError({}): {error}", ctx.command().qualified_name);
+      error!("PoiseCommandError({}): {error:#?}", ctx.command().qualified_name);
       ctx
         .reply(format!(
           "Encountered an error during command execution, ask {} to check console for more details!",

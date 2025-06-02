@@ -39,6 +39,9 @@ tokio = { workspace = true }
 poise = { git = "https://github.com/serenity-rs/poise", branch = "serenity-next" }
 asahi = { git = "https://github.com/Niko-Devel/asahi", branch = "master" }
 
+# [patch."https://github.com/serenity-rs/serenity"]
+# serenity = { git = "https://github.com/nwerosama/serenity", branch = "update-emoji" }
+
 [features]
 production = ["rustbot_lib/production", "rustbot_events/production"]
 not_ready = ["rustbot_lib/not_ready"]
