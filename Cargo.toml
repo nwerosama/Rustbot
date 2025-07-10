@@ -19,7 +19,7 @@ poise = "0.6.1"
 regex = "1.11.1"
 serde = "1.0.219"
 rand = "0.9.1"
-sysinfo = "0.35.1"
+sysinfo = "0.36.0"
 time = "0.3.41"
 uptime_lib = "0.3.1"
 tokio = { version = "1.45.1", features = ["rt-multi-thread", "macros", "signal"] }
