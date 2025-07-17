@@ -11,16 +11,17 @@ pub static GIT_COMMIT_HASH: &str = "devel";
 pub static GIT_COMMIT_BRANCH: &str = env!("GIT_COMMIT_BRANCH");
 
 pub static BOT_VERSION: LazyLock<String> = LazyLock::new(|| {
-  Manifest::from_str(include_str!("../../Cargo.toml"))
+  let cargo_version = Manifest::from_str(include_str!("../../Cargo.toml"))
     .unwrap()
     .package
     .unwrap()
     .version
-    .unwrap()
+    .unwrap();
+  format!("v{cargo_version}")
 });
 
 pub fn mention_dev(ctx: super::RustbotContext<'_>) -> Option<String> {
-  let devs = super::config::BINARY_PROPERTIES.developers.clone();
+  let devs = ctx.data().config.developers.clone();
   let app_owners = ctx.framework().options().owners.clone();
 
   let mut mentions = Vec::new();

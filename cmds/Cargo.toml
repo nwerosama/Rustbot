@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+asahi = { workspace = true }
 bytes = { workspace = true }
 poise = { workspace = true }
 rand = { workspace = true }
@@ -11,5 +12,6 @@ reqwest = { workspace = true }
 rustbot_lib = { workspace = true }
 serde = { workspace = true }
 sysinfo = { workspace = true }
-uptime_lib = { workspace = true }
-asahi = { workspace = true }
+
+[features]
+production = []

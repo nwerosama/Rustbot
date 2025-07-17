@@ -9,8 +9,8 @@ use {
     Ready
   },
   rustbot_lib::{
+    RustbotData,
     RustbotResult,
-    config::BINARY_PROPERTIES,
     utils::{
       BOT_VERSION,
       GIT_COMMIT_BRANCH,
@@ -38,11 +38,11 @@ async fn ready_once(
 
   let message = CreateMessage::new();
   let ready_embed = CreateEmbed::new()
-    .color(BINARY_PROPERTIES.embed_color)
+    .color(ctx.data::<RustbotData>().config.embed_color)
     .thumbnail(ready.user.avatar_url().unwrap_or_default())
     .author(CreateEmbedAuthor::new(format!("{} is ready!", ready.user.name)));
 
-  GenericChannelId::new(BINARY_PROPERTIES.rustbot_logs)
+  GenericChannelId::new(ctx.data::<RustbotData>().config.rustbot_logs)
     .send_message(&ctx.http, message.embed(ready_embed))
     .await?;
 

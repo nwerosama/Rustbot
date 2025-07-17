@@ -1,7 +1,15 @@
 pub mod config;
 mod data;
-pub use data::RustbotData;
+mod tsclient;
 pub mod utils;
+
+pub use {
+  data::RustbotData,
+  tsclient::{
+    discord_token,
+    token_path
+  }
+};
 
 pub type RustbotError = Box<dyn std::error::Error + Send + Sync>;
 pub type RustbotContext<'a> = poise::Context<'a, RustbotData, RustbotError>;

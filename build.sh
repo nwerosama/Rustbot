@@ -1,4 +1,9 @@
 #!/bin/bash
 
+REGISTRY=ghcr.io/nwerosama/rustbot
+TAG_NAME=$(git rev-parse --abbrev-ref HEAD)
+COMMIT=$(git rev-parse --short HEAD)
+echo "Building on $TAG_NAME branch with commit hash $COMMIT"
+
 cargo build --locked -rF production && \
-docker compose build bot
+docker build -t $REGISTRY:$TAG_NAME . && docker push $REGISTRY:$TAG_NAME

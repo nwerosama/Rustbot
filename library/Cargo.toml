@@ -6,8 +6,9 @@ edition = "2024"
 [dependencies]
 cargo_toml = { workspace = true }
 poise = { workspace = true }
+tokenservice-client = { workspace = true }
+tokio = { workspace = true }
 
 [features]
-production = ["docker"]
-docker = []
+production = []
 not_ready = []

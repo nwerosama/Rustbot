@@ -10,8 +10,7 @@ use {
   rand::random,
   rustbot_lib::{
     RustbotContext,
-    RustbotResult,
-    config::BINARY_PROPERTIES
+    RustbotResult
   },
   std::fmt::{
     Display,
@@ -106,7 +105,7 @@ async fn show_list(
   ctx: RustbotContext<'_>,
   list_type: ResponseMode
 ) -> RustbotResult<()> {
-  if ctx.author().id != UserId::new(BINARY_PROPERTIES.developers[0]) {
+  if ctx.author().id != UserId::new(ctx.data().config.developers[0]) {
     ctx
       .reply("The list knows you're looking, but it's playing a game of hide and seek. For now, it wins.")
       .await?;

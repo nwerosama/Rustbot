@@ -13,6 +13,7 @@ use {
     ActivityData,
     ClientBuilder,
     GatewayIntents,
+    HttpBuilder,
     builder::CreateAllowedMentions
   },
   rustbot_cmds::collect,
@@ -20,9 +21,9 @@ use {
   rustbot_lib::{
     RustbotData,
     config::BINARY_PROPERTIES,
+    discord_token,
     utils::get_guild_name
   },
-  rustbot_tokens::discord_token,
   std::{
     borrow::Cow,
     sync::Arc
@@ -35,11 +36,18 @@ async fn main() {
 
   let prefix = Some(Cow::Borrowed(if BINARY_PROPERTIES.env.contains("prod") { "pg." } else { "pg!" }));
 
-  let data = Arc::new(RustbotData {});
+  let http = Arc::new(HttpBuilder::new(discord_token().await).build());
+
+  let data = Arc::new(RustbotData {
+    http,
+    config: &BINARY_PROPERTIES
+  });
+
+  spawn(example_task::ExampleTask);
 
   let framework = poise::Framework::builder()
     .options(poise::FrameworkOptions {
-      commands: collect!(),
+      commands: collect(),
       pre_command: |ctx| {
         Box::pin(async move {
           let get_guild_channel_name = match ctx.channel().await {
@@ -87,8 +95,6 @@ async fn main() {
   .await
   .expect("Error creating client");
 
-  spawn(example_task::ExampleTask, Arc::clone(&data));
-
   let shutdown_trigger = client.shard_manager.get_shutdown_trigger();
   let exit_signal = tokio::spawn(async move { shutdown::gracefully_shutdown().await });
 
@@ -108,31 +114,21 @@ async fn main() {
 }
 
 mod example_task {
-  use {
-    asahi::{
-      AsahiCoordinator,
-      AsahiResult,
-      async_trait,
-      info
-    },
-    rustbot_lib::RustbotData,
-    std::sync::Arc
+  use asahi::{
+    AsahiCoordinator,
+    AsahiResult
   };
 
-  #[derive(Clone)]
   pub struct ExampleTask;
 
-  #[async_trait]
-  impl AsahiCoordinator<RustbotData> for ExampleTask {
+  #[asahi::async_trait]
+  impl AsahiCoordinator for ExampleTask {
     fn name(&self) -> &'static str { "example_task" }
 
     fn interval(&self) -> u64 { 15 }
 
-    async fn main_loop(
-      &self,
-      _: Arc<RustbotData>
-    ) -> AsahiResult<()> {
-      info!("hello from ExampleTask !");
+    async fn main_loop(&self) -> AsahiResult<()> {
+      asahi::info!("hello from ExampleTask !");
       Ok(())
     }
   }
